@@ -29,8 +29,8 @@ if [[ ! -s "${NVM_DIR}/nvm.sh" ]]; then
 fi
 # shellcheck disable=SC1091
 source "${NVM_DIR}/nvm.sh"
+# nvm use может вернуть 3 при set -e, если версия ещё не установлена; install переключает активную версию.
 nvm install "$NODE_VERSION"
-nvm use "$NODE_VERSION"
 
 cd app
 npm ci
