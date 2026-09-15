@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="mep" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="mep-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".3" stop-color="#5ee9ff"></stop><stop offset=".62" stop-color="#0aa4e8"></stop><stop offset="1" stop-color="#7b2fff"></stop></linearGradient>
+          <linearGradient id="mep-gr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe6f7"></stop><stop offset=".35" stop-color="#ff5ecf"></stop><stop offset=".7" stop-color="#c920b8"></stop><stop offset="1" stop-color="#7b2fff"></stop></linearGradient>
+          <radialGradient id="mep-au" cx=".5" cy=".45" r=".64"><stop offset="0" stop-color="#00f0ff" stop-opacity=".55"></stop><stop offset=".55" stop-color="#ff00aa" stop-opacity=".2"></stop><stop offset="1" stop-color="#ff00aa" stop-opacity="0"></stop></radialGradient>
+          <filter id="mep-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="20"></feGaussianBlur></filter>
+          <filter id="mep-fc" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="11"></feGaussianBlur></filter>
+          <g id="mep-s"><polygon points="0,-15 4,-4 15,0 4,4 0,15 -4,4 -15,0 -4,-4" fill="#e6fbff"></polygon></g>
+          <g id="mep-g1">
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="url(#mep-gr)"></polygon>
+            <polygon points="0,-124 22,-44 0,98 -60,-44" fill="#ffffff" opacity=".22"></polygon>
+            <polygon points="0,-124 -22,-44 0,-8 22,-44" fill="#ffffff" opacity=".18"></polygon>
+            <polygon points="60,-44 38,98 10,98 22,-44" fill="#05050c" opacity=".26"></polygon>
+            <ellipse cx="0" cy="-8" rx="24" ry="52" fill="#ffffff" opacity=".55" filter="url(#mep-fc)"></ellipse>
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="none" stroke="#e6fbff" stroke-width="2.5" opacity=".6"></polygon>
+            <polyline points="-60,-44 -20,-118" stroke="#7ef3ff" stroke-width="4" opacity=".7" stroke-linecap="round"></polyline>
+          </g>
+          <g id="mep-g2">
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="url(#mep-gr2)"></polygon>
+            <polygon points="0,-124 22,-44 0,98 -60,-44" fill="#ffffff" opacity=".24"></polygon>
+            <polygon points="60,-44 38,98 10,98 22,-44" fill="#05050c" opacity=".22"></polygon>
+            <ellipse cx="0" cy="-8" rx="22" ry="48" fill="#ffe6f7" opacity=".55" filter="url(#mep-fc)"></ellipse>
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="none" stroke="#ffd6f2" stroke-width="2.5" opacity=".6"></polygon>
+            <polyline points="-60,-44 -20,-118" stroke="#ffd6f2" stroke-width="4" opacity=".7" stroke-linecap="round"></polyline>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="250" rx="235" ry="220" fill="url(#mep-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#ff00aa" stroke-width="1.5" opacity=".22"></polygon>
+        <ellipse cx="256" cy="420" rx="205" ry="42" fill="none" stroke="#ff00aa" stroke-width="2" opacity=".35"></ellipse>
+        <ellipse cx="256" cy="418" rx="180" ry="30" fill="#000000" opacity=".5" filter="url(#mep-f)"></ellipse>
+        <ellipse cx="256" cy="410" rx="195" ry="40" fill="#00f0ff" opacity=".32" filter="url(#mep-f)"></ellipse>
+        <use href="#mep-g2" transform="translate(146,286) scale(.78) rotate(-18)"></use>
+        <use href="#mep-g2" transform="translate(374,294) scale(.72) rotate(19)"></use>
+        <use href="#mep-g1" transform="translate(256,244) scale(1.18)"></use>
+        <use href="#mep-g1" transform="translate(90,380) scale(.36) rotate(-32)"></use>
+        <use href="#mep-g2" transform="translate(426,392) scale(.32) rotate(28)"></use>
+        <use href="#mep-g1" transform="translate(306,404) scale(.3) rotate(12)"></use>
+        <use href="#mep-s" transform="translate(160,96) scale(1.35)"></use>
+        <use href="#mep-s" transform="translate(354,128) scale(.95)"></use>
+        <use href="#mep-s" transform="translate(256,56) scale(.75)"></use>
+        <use href="#mep-s" transform="translate(448,228) scale(1.05)"></use>
+        <use href="#mep-s" transform="translate(64,278) scale(.85)"></use>
+        <circle cx="116" cy="150" r="4" fill="#ffd6f2" opacity=".8"></circle>
+        <circle cx="402" cy="88" r="3" fill="#9ff7ff" opacity=".7"></circle>
+      </svg>

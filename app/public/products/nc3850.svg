@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nc3850" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="nc3850-g" cx=".35" cy=".26" r="1.05"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".4" stop-color="#00d5e8"></stop><stop offset="1" stop-color="#064a5a"></stop></radialGradient>
+          <linearGradient id="nc3850-s2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a94ac"></stop><stop offset="1" stop-color="#04303f"></stop></linearGradient>
+          <radialGradient id="nc3850-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#00f0ff" stop-opacity=".54"></stop><stop offset="1" stop-color="#00f0ff" stop-opacity="0"></stop></radialGradient>
+          <filter id="nc3850-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="nc3850-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#e6fbff"></polygon></g>
+          <g id="nc3850-l">
+            <rect x="-110" y="-17" width="220" height="21" fill="url(#nc3850-s2)"></rect>
+            <ellipse cx="0" cy="4" rx="110" ry="34" fill="url(#nc3850-s2)"></ellipse>
+            <ellipse cx="0" cy="-17" rx="110" ry="34" fill="url(#nc3850-g)"></ellipse>
+            <ellipse cx="0" cy="-17" rx="76" ry="22" fill="none" stroke="#04303f" stroke-width="3" opacity=".6"></ellipse>
+            <path d="M -76 -30 A 96 30 0 0 1 76 -30" stroke="#e6fbff" stroke-width="4" fill="none" opacity=".45" stroke-linecap="round"></path>
+          </g>
+          <g id="nc3850-st">
+            <circle cx="0" cy="0" r="94" fill="#04303f"></circle>
+            <circle cx="0" cy="0" r="87" fill="url(#nc3850-g)"></circle>
+            <circle cx="0" cy="0" r="76" fill="none" stroke="#04303f" stroke-width="4" stroke-dasharray="23 11"></circle>
+            <polygon points="60,0 30,-52 -30,-52 -60,0 -30,52 30,52" fill="#04303f"></polygon>
+            <polygon points="60,0 30,-52 -30,-52 -60,0 -30,52 30,52" fill="none" stroke="#9ff7ff" stroke-width="2.5" opacity=".8"></polygon>
+            <text x="0" y="15" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="39" font-weight="900" fill="#00f0ff">NC</text>
+            <path d="M -51 -73 A 88 88 0 0 1 51 -73" stroke="#e6fbff" stroke-width="6" fill="none" opacity=".5" stroke-linecap="round"></path>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#nc3850-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".24"></polygon>
+        <ellipse cx="256" cy="428" rx="205" ry="40" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="426" rx="175" ry="29" fill="#000000" opacity=".5" filter="url(#nc3850-f)"></ellipse>
+        <ellipse cx="256" cy="418" rx="190" ry="38" fill="#00f0ff" opacity=".42" filter="url(#nc3850-f)"></ellipse>
+        <use href="#nc3850-l" transform="translate(224,356)"></use>
+        <use href="#nc3850-l" transform="translate(232,319)"></use>
+        <use href="#nc3850-l" transform="translate(222,282)"></use>
+        <use href="#nc3850-l" transform="translate(229,245)"></use>
+        <use href="#nc3850-st" transform="translate(374,306) scale(.92)"></use>
+        <use href="#nc3850-s" transform="translate(120,136) scale(1.1)"></use>
+        <use href="#nc3850-s" transform="translate(400,116) scale(.8)"></use>
+        <use href="#nc3850-s" transform="translate(78,326) scale(.9)"></use>
+        <circle cx="256" cy="92" r="4" fill="#9ff7ff" opacity=".7"></circle>
+      </svg>

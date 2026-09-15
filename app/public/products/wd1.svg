@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="wd1" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="wd1-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#343a66"></stop><stop offset="1" stop-color="#12142a"></stop></linearGradient>
+          <linearGradient id="wd1-lid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#454c80"></stop><stop offset="1" stop-color="#232748"></stop></linearGradient>
+          <radialGradient id="wd1-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#7b2fff" stop-opacity=".52"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="wd1-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="wd1-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#d4c2ff"></polygon></g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#wd1-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#7b2fff" stroke-width="1.5" opacity=".26"></polygon>
+        <ellipse cx="256" cy="424" rx="185" ry="36" fill="none" stroke="#9a4dff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="422" rx="155" ry="27" fill="#000000" opacity=".5" filter="url(#wd1-f)"></ellipse>
+        <ellipse cx="256" cy="416" rx="165" ry="34" fill="#7b2fff" opacity=".42" filter="url(#wd1-f)"></ellipse>
+        <g transform="translate(256,272)">
+          <rect x="-104" y="-104" width="208" height="36" rx="9" fill="url(#wd1-lid)"></rect>
+          <rect x="-104" y="-104" width="208" height="11" rx="5" fill="#ffffff" opacity=".12"></rect>
+          <rect x="-104" y="-104" width="208" height="36" rx="9" fill="none" stroke="#9a4dff" stroke-width="2.5" opacity=".9"></rect>
+          <rect x="-100" y="-64" width="200" height="132" rx="10" fill="url(#wd1-bg)"></rect>
+          <rect x="-100" y="-64" width="200" height="132" rx="10" fill="none" stroke="#9a4dff" stroke-width="2.5" opacity=".9"></rect>
+          <path d="M -100 -20 L 100 -20 M -100 24 L 100 24" stroke="#05050c" stroke-width="5" opacity=".55"></path>
+          <rect x="-100" y="-14" width="200" height="32" fill="#7b2fff" opacity=".24"></rect>
+          <path d="M -100 -64 L -100 68" stroke="#7ef3ff" stroke-width="3.5" opacity=".5" stroke-linecap="round"></path>
+          <path d="M 100 -64 L 100 68" stroke="#ff7ec9" stroke-width="3.5" opacity=".45" stroke-linecap="round"></path>
+          <rect x="-32" y="-16" width="64" height="36" rx="7" fill="#05050c" stroke="#9a4dff" stroke-width="2.5"></rect>
+          <circle cx="0" cy="2" r="8" fill="#b18cff"></circle>
+          <circle cx="0" cy="2" r="3" fill="#05050c"></circle>
+          <rect x="-96" y="-58" width="20" height="20" rx="4" fill="none" stroke="#b18cff" stroke-width="2.5" opacity=".8"></rect>
+          <rect x="76" y="-58" width="20" height="20" rx="4" fill="none" stroke="#b18cff" stroke-width="2.5" opacity=".8"></rect>
+          <rect x="-96" y="44" width="20" height="20" rx="4" fill="none" stroke="#b18cff" stroke-width="2.5" opacity=".8"></rect>
+          <rect x="76" y="44" width="20" height="20" rx="4" fill="none" stroke="#b18cff" stroke-width="2.5" opacity=".8"></rect>
+          <circle cx="-88" cy="-92" r="3" fill="#b18cff"></circle>
+          <circle cx="88" cy="-92" r="3" fill="#b18cff"></circle>
+        </g>
+        <use href="#wd1-s" transform="translate(134,126) scale(1)"></use>
+        <use href="#wd1-s" transform="translate(392,156) scale(.75)"></use>
+        <use href="#wd1-s" transform="translate(372,398) scale(.85)"></use>
+        <circle cx="102" cy="316" r="3.5" fill="#b18cff" opacity=".7"></circle>
+      </svg>

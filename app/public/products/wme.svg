@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="wme" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="wme-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".3" stop-color="#5ee9ff"></stop><stop offset=".62" stop-color="#0aa4e8"></stop><stop offset="1" stop-color="#7b2fff"></stop></linearGradient>
+          <radialGradient id="wme-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#00f0ff" stop-opacity=".5"></stop><stop offset=".6" stop-color="#7b2fff" stop-opacity=".2"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="wme-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="18"></feGaussianBlur></filter>
+          <filter id="wme-fc" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="12"></feGaussianBlur></filter>
+          <g id="wme-s"><polygon points="0,-15 4,-4 15,0 4,4 0,15 -4,4 -15,0 -4,-4" fill="#e6fbff"></polygon></g>
+          <g id="wme-g1">
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="url(#wme-gr)"></polygon>
+            <polygon points="0,-124 22,-44 0,98 -60,-44" fill="#ffffff" opacity=".22"></polygon>
+            <polygon points="0,-124 -22,-44 0,-8 22,-44" fill="#ffffff" opacity=".18"></polygon>
+            <polygon points="60,-44 38,98 10,98 22,-44" fill="#05050c" opacity=".26"></polygon>
+            <polygon points="-38,98 38,98 0,58" fill="#05050c" opacity=".18"></polygon>
+            <ellipse cx="0" cy="-8" rx="24" ry="52" fill="#ffffff" opacity=".55" filter="url(#wme-fc)"></ellipse>
+            <polygon points="0,-124 60,-44 38,98 -38,98 -60,-44" fill="none" stroke="#e6fbff" stroke-width="2.5" opacity=".6"></polygon>
+            <polyline points="-60,-44 60,-44" stroke="#e6fbff" stroke-width="2" opacity=".55"></polyline>
+            <polyline points="0,-124 0,98" stroke="#e6fbff" stroke-width="1.5" opacity=".3"></polyline>
+            <polyline points="-60,-44 -20,-118" stroke="#7ef3ff" stroke-width="4" opacity=".7" stroke-linecap="round"></polyline>
+            <polyline points="60,-44 38,98" stroke="#ff7ec9" stroke-width="3.5" opacity=".5" stroke-linecap="round"></polyline>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#wme-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".2"></polygon>
+        <ellipse cx="256" cy="416" rx="190" ry="38" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".35"></ellipse>
+        <ellipse cx="256" cy="414" rx="160" ry="28" fill="#000000" opacity=".5" filter="url(#wme-f)"></ellipse>
+        <ellipse cx="256" cy="408" rx="170" ry="36" fill="#00f0ff" opacity=".33" filter="url(#wme-f)"></ellipse>
+        <use href="#wme-g1" transform="translate(256,238) scale(1.32)"></use>
+        <use href="#wme-g1" transform="translate(128,352) scale(.44) rotate(-22)"></use>
+        <use href="#wme-g1" transform="translate(390,360) scale(.52) rotate(17)"></use>
+        <use href="#wme-s" transform="translate(174,100) scale(1.25)"></use>
+        <use href="#wme-s" transform="translate(352,140) scale(.85)"></use>
+        <use href="#wme-s" transform="translate(298,66) scale(.6)"></use>
+        <use href="#wme-s" transform="translate(438,262) scale(.95)"></use>
+        <circle cx="92" cy="222" r="4" fill="#9ff7ff" opacity=".8"></circle>
+        <circle cx="424" cy="172" r="3" fill="#ffd6f2" opacity=".7"></circle>
+      </svg>

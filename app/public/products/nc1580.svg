@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nc1580" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="nc1580-g" cx=".35" cy=".26" r="1.05"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".4" stop-color="#00d5e8"></stop><stop offset="1" stop-color="#064a5a"></stop></radialGradient>
+          <radialGradient id="nc1580-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#00f0ff" stop-opacity=".52"></stop><stop offset="1" stop-color="#00f0ff" stop-opacity="0"></stop></radialGradient>
+          <filter id="nc1580-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="nc1580-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#e6fbff"></polygon></g>
+          <g id="nc1580-c">
+            <circle cx="0" cy="0" r="102" fill="#04303f"></circle>
+            <circle cx="0" cy="0" r="95" fill="url(#nc1580-g)"></circle>
+            <circle cx="0" cy="0" r="83" fill="none" stroke="#04303f" stroke-width="4" stroke-dasharray="25 12"></circle>
+            <polygon points="66,0 33,-57 -33,-57 -66,0 -33,57 33,57" fill="#04303f"></polygon>
+            <polygon points="66,0 33,-57 -33,-57 -66,0 -33,57 33,57" fill="none" stroke="#9ff7ff" stroke-width="2.5" opacity=".8"></polygon>
+            <text x="0" y="17" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="43" font-weight="900" fill="#00f0ff">NC</text>
+            <path d="M -46 -79 A 91 91 0 0 1 46 -79" stroke="#e6fbff" stroke-width="6" fill="none" opacity=".5" stroke-linecap="round"></path>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#nc1580-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".24"></polygon>
+        <ellipse cx="256" cy="428" rx="195" ry="38" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="426" rx="165" ry="28" fill="#000000" opacity=".5" filter="url(#nc1580-f)"></ellipse>
+        <ellipse cx="256" cy="418" rx="180" ry="36" fill="#00f0ff" opacity=".4" filter="url(#nc1580-f)"></ellipse>
+        <use href="#nc1580-c" transform="translate(156,222) scale(.84)"></use>
+        <use href="#nc1580-c" transform="translate(356,232) scale(.84)"></use>
+        <use href="#nc1580-c" transform="translate(256,324)"></use>
+        <use href="#nc1580-s" transform="translate(126,112) scale(1.1)"></use>
+        <use href="#nc1580-s" transform="translate(398,116) scale(.8)"></use>
+        <use href="#nc1580-s" transform="translate(434,326) scale(.9)"></use>
+        <circle cx="78" cy="316" r="4" fill="#9ff7ff" opacity=".7"></circle>
+      </svg>

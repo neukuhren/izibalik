@@ -1,0 +1,46 @@
+/* Глобальные стили Izibalik. */
+
+/* Цифры внутри Orbitron-текста рендерятся Rajdhani Bold: буквы/лого остаются Orbitron,
+   цифры (цены, UC, KPI) — более привычные. Работает через unicode-range поверх Google-шрифта:
+   это @font-face объявлен позже, поэтому для U+0030-0039 побеждает он. */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreec.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+html, body, #root { height: 100%; }
+body { margin: 0; background: #05050c; }
+input:focus { outline: none; }
+input::placeholder { color: #4b5070; }
+::-webkit-scrollbar { display: none; }
+
+/* focus effect (dc style-focus) */
+.iziFC:focus { border-color: #00f0ff !important; }
+.iziFCg:focus { border-color: #00f0ff !important; box-shadow: 0 0 14px rgba(0,240,255,.25); }
+.iziFM:focus { border-color: #ff00aa !important; }
+.iziFMg:focus { border-color: #ff00aa !important; box-shadow: 0 0 14px rgba(255,0,170,.2); }
+
+/* press effect (dc style-active) */
+.iziA95:active { transform: scale(.95); }
+.iziA96:active { transform: scale(.96); }
+.iziA97:active { transform: scale(.97); }
+.iziA98:active { transform: scale(.98); }
+.iziA99:active { transform: scale(.99); }
+
+@keyframes iziGrad { 0% { background-position: 0% 50% } 100% { background-position: 200% 50% } }
+@keyframes iziGlitch { 0%, 92% { text-shadow: 0 0 18px rgba(0,240,255,.5) } 93% { text-shadow: 3px 0 #ff00aa, -3px 0 #00f0ff } 95% { text-shadow: -3px 1px #ff00aa, 3px -1px #00f0ff } 97% { text-shadow: 2px 0 #ff00aa, -2px 0 #00f0ff } 100% { text-shadow: 0 0 18px rgba(0,240,255,.5) } }
+@keyframes iziPulseM { 0%, 100% { box-shadow: 0 0 10px rgba(255,0,170,.2), inset 0 0 0 1px rgba(255,0,170,.45) } 50% { box-shadow: 0 0 26px rgba(255,0,170,.5), inset 0 0 0 1px rgba(255,0,170,.9) } }
+@keyframes iziPulseC { 0%, 100% { box-shadow: 0 0 8px rgba(0,240,255,.3) } 50% { box-shadow: 0 0 22px rgba(0,240,255,.8) } }
+@keyframes iziShake { 0%, 100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(4px) } }
+@keyframes iziSpin { to { transform: rotate(360deg) } }
+@keyframes iziPop { 0% { transform: scale(.5); opacity: 0 } 70% { transform: scale(1.1) } 100% { transform: scale(1); opacity: 1 } }
+@keyframes iziBlink { 0%, 100% { opacity: 1 } 50% { opacity: .2 } }
+@keyframes iziRise { 0% { transform: translateY(0) rotate(0deg); opacity: 1 } 100% { transform: translateY(-160px) rotate(220deg); opacity: 0 } }
+@keyframes iziUp { from { transform: translateY(48px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes iziIn { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes iziSweep { 0% { transform: translateX(-160%) skewX(-18deg) } 55%, 100% { transform: translateX(340%) skewX(-18deg) } }
+@keyframes iziTicker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+@keyframes iziBootIn { from { opacity: 0; letter-spacing: 14px; filter: blur(4px) } to { opacity: 1; letter-spacing: 5px; filter: blur(0) } }

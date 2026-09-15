@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="ep100" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="ep100-tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f055bd"></stop><stop offset=".45" stop-color="#8a34e8"></stop><stop offset="1" stop-color="#26095c"></stop></linearGradient>
+          <linearGradient id="ep100-au" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"></stop><stop offset=".5" stop-color="#f0b429"></stop><stop offset="1" stop-color="#a86e0d"></stop></linearGradient>
+          <radialGradient id="ep100-bg" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#ff00aa" stop-opacity=".5"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="ep100-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="ep100-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fff6cf"></polygon></g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#ep100-bg)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#ff00aa" stroke-width="1.5" opacity=".22"></polygon>
+        <ellipse cx="256" cy="432" rx="185" ry="36" fill="none" stroke="#f0b429" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="430" rx="155" ry="27" fill="#000000" opacity=".5" filter="url(#ep100-f)"></ellipse>
+        <ellipse cx="256" cy="424" rx="165" ry="34" fill="#ff00aa" opacity=".38" filter="url(#ep100-f)"></ellipse>
+        <g transform="translate(256,252) rotate(-4)">
+          <rect x="-92" y="-150" width="184" height="300" rx="16" fill="url(#ep100-tg)"></rect>
+          <path d="M -92 -150 L 20 -150 L -92 -20 Z" fill="#ffffff" opacity=".09"></path>
+          <path d="M -60 150 L 30 -150 L 52 -150 L -38 150 Z" fill="#ffffff" opacity=".08"></path>
+          <rect x="-92" y="-150" width="184" height="300" rx="16" fill="none" stroke="#ffe98a" stroke-width="3" opacity=".9"></rect>
+          <rect x="-80" y="-138" width="160" height="276" rx="11" fill="none" stroke="#ffe98a" stroke-width="1.5" stroke-dasharray="3 8" opacity=".5"></rect>
+          <path d="M -92 62 L 92 62" stroke="#ffb3dd" stroke-width="2.5" stroke-dasharray="8 8" opacity=".65"></path>
+          <g transform="translate(0,-56)">
+            <path d="M -14 6 L -90 -38 C -54 -28 -34 -14 -14 -4 Z" fill="url(#ep100-au)"></path>
+            <path d="M -18 12 L -74 0 C -48 6 -34 10 -18 16 Z" fill="url(#ep100-au)" opacity=".65"></path>
+            <path d="M 14 6 L 90 -38 C 54 -28 34 -14 14 -4 Z" fill="url(#ep100-au)"></path>
+            <path d="M 18 12 L 74 0 C 48 6 34 10 18 16 Z" fill="url(#ep100-au)" opacity=".65"></path>
+            <polygon points="0,-40 30,-25 30,12 0,32 -30,12 -30,-25" fill="#f2f4ff"></polygon>
+            <polygon points="0,-26 17,-17 17,7 0,19 -17,7 -17,-17" fill="#c93d9e"></polygon>
+            <polygon points="0,-14 8,-9 8,3 0,9 -8,3 -8,-9" fill="#fff6cf"></polygon>
+          </g>
+          <text x="0" y="42" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="31" font-weight="900" letter-spacing="6" fill="#f2f4ff">ELITE</text>
+          <g transform="translate(0,102) rotate(-7)">
+            <rect x="-112" y="-21" width="224" height="42" fill="url(#ep100-au)"></rect>
+            <rect x="-112" y="-21" width="224" height="8" fill="#ffffff" opacity=".3"></rect>
+            <polygon points="-112,-21 -134,0 -112,21" fill="#8a5c0a"></polygon>
+            <polygon points="112,-21 134,0 112,21" fill="#8a5c0a"></polygon>
+            <text x="0" y="10" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="27" font-weight="900" fill="#2a1c05">100</text>
+          </g>
+        </g>
+        <use href="#ep100-s" transform="translate(126,104) scale(1.1)"></use>
+        <use href="#ep100-s" transform="translate(402,142) scale(.8)"></use>
+        <use href="#ep100-s" transform="translate(384,406) scale(.9)"></use>
+        <circle cx="90" cy="322" r="3.5" fill="#ffd75e" opacity=".7"></circle>
+      </svg>

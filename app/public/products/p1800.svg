@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="p1800" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="p1800-gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7c8"></stop><stop offset=".28" stop-color="#ffd75e"></stop><stop offset=".6" stop-color="#f0a81f"></stop><stop offset=".85" stop-color="#c9860f"></stop><stop offset="1" stop-color="#a86e0d"></stop></linearGradient>
+          <linearGradient id="p1800-fm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe98a"></stop><stop offset="1" stop-color="#d8a02a"></stop></linearGradient>
+          <radialGradient id="p1800-in" cx=".5" cy=".35" r=".95"><stop offset="0" stop-color="#523607"></stop><stop offset="1" stop-color="#140c01"></stop></radialGradient>
+          <linearGradient id="p1800-tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbe6"></stop><stop offset=".5" stop-color="#ffd75e"></stop><stop offset="1" stop-color="#e09314"></stop></linearGradient>
+          <radialGradient id="p1800-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#f0b429" stop-opacity=".55"></stop><stop offset=".6" stop-color="#7b2fff" stop-opacity=".18"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="p1800-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="p1800-s"><polygon points="0,-15 4,-4 15,0 4,4 0,15 -4,4 -15,0 -4,-4" fill="#fff6cf"></polygon></g>
+          <g id="p1800-cl">
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="#6b4708" transform="translate(0,26)"></polygon>
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="#9c6b10" transform="translate(0,13)"></polygon>
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="url(#p1800-fm)"></polygon>
+            <polygon points="100,0 50,-43 -50,-43 -100,0 -50,43 50,43" fill="url(#p1800-in)"></polygon>
+            <polygon points="100,0 50,-43 -50,-43 -100,0 -50,43 50,43" fill="none" stroke="#ffe98a" stroke-width="2.5" opacity=".7"></polygon>
+            <polygon points="-75,-65 75,-65 30,-14 -110,-32" fill="#ffffff" opacity=".14"></polygon>
+          </g>
+          <g id="p1800-cs">
+            <polygon points="150,0 75,-130 -75,-130 -150,0 -75,130 75,130" fill="#6b4708" transform="translate(9,10)"></polygon>
+            <polygon points="150,0 75,-130 -75,-130 -150,0 -75,130 75,130" fill="url(#p1800-gm)"></polygon>
+            <polygon points="128,0 64,-111 -64,-111 -128,0 -64,111 64,111" fill="none" stroke="#a86e0d" stroke-width="9" opacity=".7"></polygon>
+            <polygon points="128,0 64,-111 -64,-111 -128,0 -64,111 64,111" fill="none" stroke="#ffe98a" stroke-width="2" opacity=".8"></polygon>
+            <polygon points="100,0 50,-87 -50,-87 -100,0 -50,87 50,87" fill="url(#p1800-in)"></polygon>
+            <polygon points="100,0 50,-87 -50,-87 -100,0 -50,87 50,87" fill="none" stroke="#ffe98a" stroke-width="3" opacity=".8"></polygon>
+            <text x="0" y="26" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="62" font-weight="900" fill="#000000" opacity=".55">UC</text>
+            <text x="0" y="21" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="62" font-weight="900" fill="url(#p1800-tg)">UC</text>
+            <polygon points="-75,-130 75,-130 22,-30 -114,-64" fill="#ffffff" opacity=".16"></polygon>
+            <polyline points="-150,0 -75,-130 75,-130" fill="none" stroke="#7ef3ff" stroke-width="5" opacity=".55" stroke-linecap="round"></polyline>
+            <polyline points="150,0 75,130 -75,130" fill="none" stroke="#ff7ec9" stroke-width="5" opacity=".5" stroke-linecap="round"></polyline>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#p1800-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".2"></polygon>
+        <ellipse cx="256" cy="418" rx="200" ry="40" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".35"></ellipse>
+        <ellipse cx="256" cy="416" rx="175" ry="29" fill="#000000" opacity=".5" filter="url(#p1800-f)"></ellipse>
+        <ellipse cx="256" cy="408" rx="185" ry="38" fill="#f0b429" opacity=".42" filter="url(#p1800-f)"></ellipse>
+        <use href="#p1800-cl" transform="translate(322,382) scale(.74)"></use>
+        <use href="#p1800-cl" transform="translate(316,351) scale(.74)"></use>
+        <use href="#p1800-cl" transform="translate(325,320) scale(.74)"></use>
+        <use href="#p1800-cl" transform="translate(318,289) scale(.74)"></use>
+        <use href="#p1800-cl" transform="translate(323,258) scale(.74)"></use>
+        <use href="#p1800-cl" transform="translate(319,227) scale(.74)"></use>
+        <use href="#p1800-cs" transform="translate(186,272) rotate(-7) scale(.9)"></use>
+        <use href="#p1800-s" transform="translate(132,104) scale(1.15)"></use>
+        <use href="#p1800-s" transform="translate(404,124) scale(.8)"></use>
+        <use href="#p1800-s" transform="translate(444,310) scale(.9)"></use>
+        <use href="#p1800-s" transform="translate(76,380) scale(.7)"></use>
+        <circle cx="256" cy="76" r="3.5" fill="#ffd75e" opacity=".7"></circle>
+      </svg>

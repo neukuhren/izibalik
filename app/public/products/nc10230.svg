@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nc10230" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="nc10230-g" cx=".35" cy=".26" r="1.05"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".4" stop-color="#00d5e8"></stop><stop offset="1" stop-color="#064a5a"></stop></radialGradient>
+          <linearGradient id="nc10230-s2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a94ac"></stop><stop offset="1" stop-color="#04303f"></stop></linearGradient>
+          <radialGradient id="nc10230-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#00f0ff" stop-opacity=".56"></stop><stop offset="1" stop-color="#00f0ff" stop-opacity="0"></stop></radialGradient>
+          <filter id="nc10230-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="18"></feGaussianBlur></filter>
+          <g id="nc10230-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#e6fbff"></polygon></g>
+          <g id="nc10230-l">
+            <rect x="-100" y="-16" width="200" height="19" fill="url(#nc10230-s2)"></rect>
+            <ellipse cx="0" cy="3" rx="100" ry="31" fill="url(#nc10230-s2)"></ellipse>
+            <ellipse cx="0" cy="-16" rx="100" ry="31" fill="url(#nc10230-g)"></ellipse>
+            <ellipse cx="0" cy="-16" rx="68" ry="20" fill="none" stroke="#04303f" stroke-width="3" opacity=".6"></ellipse>
+            <path d="M -68 -28 A 86 27 0 0 1 68 -28" stroke="#e6fbff" stroke-width="4" fill="none" opacity=".45" stroke-linecap="round"></path>
+          </g>
+          <g id="nc10230-st">
+            <circle cx="0" cy="0" r="90" fill="#04303f"></circle>
+            <circle cx="0" cy="0" r="83" fill="url(#nc10230-g)"></circle>
+            <circle cx="0" cy="0" r="72" fill="none" stroke="#04303f" stroke-width="4" stroke-dasharray="21 10"></circle>
+            <polygon points="57,0 28,-49 -28,-49 -57,0 -28,49 28,49" fill="#04303f"></polygon>
+            <polygon points="57,0 28,-49 -28,-49 -57,0 -28,49 28,49" fill="none" stroke="#9ff7ff" stroke-width="2.5" opacity=".8"></polygon>
+            <text x="0" y="14" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="37" font-weight="900" fill="#00f0ff">NC</text>
+            <path d="M -49 -70 A 84 84 0 0 1 49 -70" stroke="#e6fbff" stroke-width="5" fill="none" opacity=".5" stroke-linecap="round"></path>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="232" ry="218" fill="url(#nc10230-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".24"></polygon>
+        <ellipse cx="256" cy="430" rx="212" ry="41" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="428" rx="182" ry="30" fill="#000000" opacity=".5" filter="url(#nc10230-f)"></ellipse>
+        <ellipse cx="256" cy="420" rx="200" ry="40" fill="#00f0ff" opacity=".44" filter="url(#nc10230-f)"></ellipse>
+        <use href="#nc10230-l" transform="translate(146,366)"></use>
+        <use href="#nc10230-l" transform="translate(153,333)"></use>
+        <use href="#nc10230-l" transform="translate(144,300)"></use>
+        <use href="#nc10230-l" transform="translate(150,267)"></use>
+        <use href="#nc10230-l" transform="translate(360,362)"></use>
+        <use href="#nc10230-l" transform="translate(366,329)"></use>
+        <use href="#nc10230-l" transform="translate(357,296)"></use>
+        <use href="#nc10230-l" transform="translate(363,263)"></use>
+        <use href="#nc10230-l" transform="translate(359,230)"></use>
+        <use href="#nc10230-l" transform="translate(362,197)"></use>
+        <use href="#nc10230-st" transform="translate(242,322) scale(.88)"></use>
+        <use href="#nc10230-s" transform="translate(118,126) scale(1.1)"></use>
+        <use href="#nc10230-s" transform="translate(404,106) scale(.85)"></use>
+        <use href="#nc10230-s" transform="translate(68,296) scale(.8)"></use>
+        <circle cx="256" cy="76" r="4" fill="#9ff7ff" opacity=".7"></circle>
+      </svg>

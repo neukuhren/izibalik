@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="prp6" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="prp6-cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b46bff"></stop><stop offset=".55" stop-color="#6a24d8"></stop><stop offset="1" stop-color="#38107a"></stop></linearGradient>
+          <linearGradient id="prp6-au2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cf"></stop><stop offset=".5" stop-color="#f0b429"></stop><stop offset="1" stop-color="#a86e0d"></stop></linearGradient>
+          <radialGradient id="prp6-bg" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#7b2fff" stop-opacity=".58"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="prp6-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <filter id="prp6-fg" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="10"></feGaussianBlur></filter>
+          <g id="prp6-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fff6cf"></polygon></g>
+          <g id="prp6-cr">
+            <polygon points="-54,0 -54,-43 -26,-15 0,-53 26,-15 54,-43 54,0" fill="url(#prp6-au2)"></polygon>
+            <rect x="-54" y="0" width="108" height="17" rx="6" fill="url(#prp6-au2)"></rect>
+            <circle cx="-54" cy="-45" r="6" fill="#fff6cf"></circle>
+            <circle cx="0" cy="-55" r="7" fill="#fff6cf"></circle>
+            <circle cx="54" cy="-45" r="6" fill="#fff6cf"></circle>
+            <circle cx="0" cy="8" r="6" fill="#ff00aa"></circle>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="232" ry="218" fill="url(#prp6-bg)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#7b2fff" stroke-width="1.5" opacity=".28"></polygon>
+        <ellipse cx="256" cy="428" rx="180" ry="35" fill="none" stroke="#9a4dff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="426" rx="150" ry="26" fill="#000000" opacity=".5" filter="url(#prp6-f)"></ellipse>
+        <ellipse cx="256" cy="420" rx="160" ry="33" fill="#7b2fff" opacity=".42" filter="url(#prp6-f)"></ellipse>
+        <g transform="translate(256,250)">
+          <rect x="-102" y="-142" width="204" height="284" rx="18" fill="#ffffff" opacity=".05"></rect>
+          <rect x="-102" y="-142" width="204" height="284" rx="18" fill="none" stroke="#d4b3ff" stroke-width="2" opacity=".45"></rect>
+          <rect x="-96" y="-136" width="192" height="272" rx="15" fill="none" stroke="#d4b3ff" stroke-width="1.5" stroke-dasharray="2 7" opacity=".45"></rect>
+          <path d="M -102 -50 L -8 -142" stroke="#ffffff" stroke-width="16" opacity=".09" stroke-linecap="round"></path>
+          <rect x="-78" y="-112" width="156" height="224" rx="12" fill="url(#prp6-cg)"></rect>
+          <path d="M -58 112 L 34 -112 L 58 -112 L -34 112 Z" fill="#ffffff" opacity=".12"></path>
+          <rect x="-78" y="-112" width="156" height="224" rx="12" fill="none" stroke="url(#prp6-au2)" stroke-width="4"></rect>
+          <use href="#prp6-cr" transform="translate(0,-14)" filter="url(#prp6-fg)" opacity=".7"></use>
+          <use href="#prp6-cr" transform="translate(0,-14)"></use>
+          <rect x="-34" y="56" width="68" height="30" rx="15" fill="#05050c" opacity=".65" stroke="#ffe98a" stroke-width="1.5"></rect>
+          <text x="0" y="77" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="18" font-weight="700" fill="#ffe98a">6M</text>
+        </g>
+        <use href="#prp6-s" transform="translate(124,110) scale(1.1)"></use>
+        <use href="#prp6-s" transform="translate(398,144) scale(.8)"></use>
+        <use href="#prp6-s" transform="translate(376,394) scale(.9)"></use>
+        <circle cx="100" cy="324" r="3.5" fill="#d4b3ff" opacity=".7"></circle>
+      </svg>

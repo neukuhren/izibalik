@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nc300" viewBox="0 0 512 512">
+        <defs>
+          <radialGradient id="nc300-g" cx=".35" cy=".26" r="1.05"><stop offset="0" stop-color="#e6fdff"></stop><stop offset=".4" stop-color="#00d5e8"></stop><stop offset="1" stop-color="#064a5a"></stop></radialGradient>
+          <radialGradient id="nc300-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#00f0ff" stop-opacity=".5"></stop><stop offset="1" stop-color="#00f0ff" stop-opacity="0"></stop></radialGradient>
+          <filter id="nc300-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <g id="nc300-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#e6fbff"></polygon></g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="230" ry="215" fill="url(#nc300-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".24"></polygon>
+        <ellipse cx="256" cy="248" rx="192" ry="62" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".3" transform="rotate(-18 256 248)"></ellipse>
+        <ellipse cx="256" cy="424" rx="180" ry="35" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="422" rx="150" ry="26" fill="#000000" opacity=".5" filter="url(#nc300-f)"></ellipse>
+        <ellipse cx="256" cy="416" rx="160" ry="33" fill="#00f0ff" opacity=".38" filter="url(#nc300-f)"></ellipse>
+        <g transform="translate(256,248)">
+          <circle cx="0" cy="0" r="136" fill="#04303f"></circle>
+          <circle cx="0" cy="0" r="127" fill="url(#nc300-g)"></circle>
+          <circle cx="0" cy="0" r="112" fill="none" stroke="#04303f" stroke-width="5" stroke-dasharray="32 15"></circle>
+          <path d="M -80 -80 L -50 -50 M 80 -80 L 50 -50 M -80 80 L -50 50 M 80 80 L 50 50" stroke="#04303f" stroke-width="4" opacity=".55"></path>
+          <polygon points="88,0 44,-76 -44,-76 -88,0 -44,76 44,76" fill="#04303f"></polygon>
+          <polygon points="88,0 44,-76 -44,-76 -88,0 -44,76 44,76" fill="none" stroke="#9ff7ff" stroke-width="3.5" opacity=".8"></polygon>
+          <polygon points="74,0 37,-64 -37,-64 -74,0 -37,64 37,64" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".45"></polygon>
+          <text x="0" y="23" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="58" font-weight="900" fill="#00f0ff">NC</text>
+          <path d="M -62 -106 A 122 122 0 0 1 62 -106" stroke="#e6fbff" stroke-width="8" fill="none" opacity=".5" stroke-linecap="round"></path>
+          <path d="M -106 62 A 122 122 0 0 0 -62 106" stroke="#ff7ec9" stroke-width="5" fill="none" opacity=".4" stroke-linecap="round"></path>
+        </g>
+        <use href="#nc300-s" transform="translate(130,126) scale(1.1)"></use>
+        <use href="#nc300-s" transform="translate(396,162) scale(.8)"></use>
+        <use href="#nc300-s" transform="translate(370,400) scale(.9)"></use>
+        <circle cx="94" cy="316" r="4" fill="#9ff7ff" opacity=".7"></circle>
+      </svg>

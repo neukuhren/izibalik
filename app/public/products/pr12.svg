@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="pr12" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="pr12-cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe387"></stop><stop offset=".5" stop-color="#e0a726"></stop><stop offset="1" stop-color="#6b4708"></stop></linearGradient>
+          <linearGradient id="pr12-au2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cf"></stop><stop offset="1" stop-color="#d8a02a"></stop></linearGradient>
+          <radialGradient id="pr12-bg" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#f0b429" stop-opacity=".55"></stop><stop offset="1" stop-color="#f0b429" stop-opacity="0"></stop></radialGradient>
+          <filter id="pr12-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="17"></feGaussianBlur></filter>
+          <filter id="pr12-fg" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9"></feGaussianBlur></filter>
+          <g id="pr12-s"><polygon points="0,-14 3.5,-3.5 14,0 3.5,3.5 0,14 -3.5,3.5 -14,0 -3.5,-3.5" fill="#fff6cf"></polygon></g>
+          <g id="pr12-cr">
+            <polygon points="-48,0 -48,-38 -24,-13 0,-47 24,-13 48,-38 48,0" fill="#2a1c05"></polygon>
+            <rect x="-48" y="0" width="96" height="16" rx="5" fill="#2a1c05"></rect>
+            <circle cx="-48" cy="-40" r="5" fill="url(#pr12-au2)"></circle>
+            <circle cx="0" cy="-49" r="6" fill="url(#pr12-au2)"></circle>
+            <circle cx="48" cy="-40" r="5" fill="url(#pr12-au2)"></circle>
+            <circle cx="0" cy="8" r="5" fill="#ff00aa"></circle>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="232" ry="218" fill="url(#pr12-bg)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#f0b429" stroke-width="1.5" opacity=".26"></polygon>
+        <ellipse cx="256" cy="428" rx="180" ry="35" fill="none" stroke="#f0b429" stroke-width="2" opacity=".4"></ellipse>
+        <ellipse cx="256" cy="426" rx="150" ry="26" fill="#000000" opacity=".5" filter="url(#pr12-f)"></ellipse>
+        <ellipse cx="256" cy="420" rx="160" ry="33" fill="#f0b429" opacity=".42" filter="url(#pr12-f)"></ellipse>
+        <g transform="translate(256,250)">
+          <rect x="-102" y="-142" width="204" height="284" rx="18" fill="#ffffff" opacity=".05"></rect>
+          <rect x="-102" y="-142" width="204" height="284" rx="18" fill="none" stroke="#ffe98a" stroke-width="2" opacity=".45"></rect>
+          <rect x="-96" y="-136" width="192" height="272" rx="15" fill="none" stroke="#ffe98a" stroke-width="1.5" stroke-dasharray="2 7" opacity=".5"></rect>
+          <path d="M -102 -50 L -8 -142" stroke="#ffffff" stroke-width="16" opacity=".09" stroke-linecap="round"></path>
+          <rect x="-78" y="-112" width="156" height="224" rx="12" fill="url(#pr12-cg)"></rect>
+          <path d="M -60 112 L 30 -112 L 54 -112 L -36 112 Z" fill="#ffffff" opacity=".22"></path>
+          <rect x="-78" y="-112" width="156" height="224" rx="12" fill="none" stroke="#fff6cf" stroke-width="3.5" opacity=".85"></rect>
+          <rect x="-66" y="-100" width="132" height="200" rx="9" fill="none" stroke="#8a5c0a" stroke-width="1.5" opacity=".55"></rect>
+          <use href="#pr12-cr" transform="translate(0,-15)" filter="url(#pr12-fg)" opacity=".55"></use>
+          <use href="#pr12-cr" transform="translate(0,-15)"></use>
+          <rect x="-36" y="52" width="72" height="30" rx="15" fill="#2a1c05" opacity=".9" stroke="#fff6cf" stroke-width="1.5"></rect>
+          <text x="0" y="73" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="17" font-weight="700" fill="#ffe98a">12M</text>
+        </g>
+        <use href="#pr12-s" transform="translate(124,108) scale(1.2)"></use>
+        <use href="#pr12-s" transform="translate(402,138) scale(.9)"></use>
+        <use href="#pr12-s" transform="translate(378,400) scale(1)"></use>
+        <use href="#pr12-s" transform="translate(86,296) scale(.7)"></use>
+        <circle cx="256" cy="66" r="4" fill="#ffd75e" opacity=".8"></circle>
+      </svg>

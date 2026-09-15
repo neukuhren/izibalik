@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="p3850" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="p3850-gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7c8"></stop><stop offset=".28" stop-color="#ffd75e"></stop><stop offset=".6" stop-color="#f0a81f"></stop><stop offset=".85" stop-color="#c9860f"></stop><stop offset="1" stop-color="#a86e0d"></stop></linearGradient>
+          <linearGradient id="p3850-fm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe98a"></stop><stop offset="1" stop-color="#d8a02a"></stop></linearGradient>
+          <radialGradient id="p3850-in" cx=".5" cy=".35" r=".95"><stop offset="0" stop-color="#523607"></stop><stop offset="1" stop-color="#140c01"></stop></radialGradient>
+          <linearGradient id="p3850-tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbe6"></stop><stop offset=".5" stop-color="#ffd75e"></stop><stop offset="1" stop-color="#e09314"></stop></linearGradient>
+          <radialGradient id="p3850-au" cx=".5" cy=".45" r=".62"><stop offset="0" stop-color="#f0b429" stop-opacity=".58"></stop><stop offset=".6" stop-color="#7b2fff" stop-opacity=".18"></stop><stop offset="1" stop-color="#7b2fff" stop-opacity="0"></stop></radialGradient>
+          <filter id="p3850-f" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="18"></feGaussianBlur></filter>
+          <g id="p3850-s"><polygon points="0,-15 4,-4 15,0 4,4 0,15 -4,4 -15,0 -4,-4" fill="#fff6cf"></polygon></g>
+          <g id="p3850-cl">
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="#6b4708" transform="translate(0,26)"></polygon>
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="#9c6b10" transform="translate(0,13)"></polygon>
+            <polygon points="150,0 75,-65 -75,-65 -150,0 -75,65 75,65" fill="url(#p3850-fm)"></polygon>
+            <polygon points="100,0 50,-43 -50,-43 -100,0 -50,43 50,43" fill="url(#p3850-in)"></polygon>
+            <polygon points="100,0 50,-43 -50,-43 -100,0 -50,43 50,43" fill="none" stroke="#ffe98a" stroke-width="2.5" opacity=".7"></polygon>
+            <polygon points="-75,-65 75,-65 30,-14 -110,-32" fill="#ffffff" opacity=".14"></polygon>
+          </g>
+          <g id="p3850-cs">
+            <polygon points="150,0 75,-130 -75,-130 -150,0 -75,130 75,130" fill="#6b4708" transform="translate(9,10)"></polygon>
+            <polygon points="150,0 75,-130 -75,-130 -150,0 -75,130 75,130" fill="url(#p3850-gm)"></polygon>
+            <polygon points="128,0 64,-111 -64,-111 -128,0 -64,111 64,111" fill="none" stroke="#a86e0d" stroke-width="9" opacity=".7"></polygon>
+            <polygon points="128,0 64,-111 -64,-111 -128,0 -64,111 64,111" fill="none" stroke="#ffe98a" stroke-width="2" opacity=".8"></polygon>
+            <polygon points="100,0 50,-87 -50,-87 -100,0 -50,87 50,87" fill="url(#p3850-in)"></polygon>
+            <polygon points="100,0 50,-87 -50,-87 -100,0 -50,87 50,87" fill="none" stroke="#ffe98a" stroke-width="3" opacity=".8"></polygon>
+            <text x="0" y="26" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="62" font-weight="900" fill="#000000" opacity=".55">UC</text>
+            <text x="0" y="21" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="62" font-weight="900" fill="url(#p3850-tg)">UC</text>
+            <polygon points="-75,-130 75,-130 22,-30 -114,-64" fill="#ffffff" opacity=".16"></polygon>
+            <polyline points="-150,0 -75,-130 75,-130" fill="none" stroke="#7ef3ff" stroke-width="5" opacity=".55" stroke-linecap="round"></polyline>
+            <polyline points="150,0 75,130 -75,130" fill="none" stroke="#ff7ec9" stroke-width="5" opacity=".5" stroke-linecap="round"></polyline>
+          </g>
+        </defs>
+        <ellipse cx="256" cy="240" rx="232" ry="218" fill="url(#p3850-au)"></ellipse>
+        <polygon points="256,36 448,146 448,366 256,476 64,366 64,146" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity=".2"></polygon>
+        <ellipse cx="256" cy="420" rx="210" ry="42" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".35"></ellipse>
+        <ellipse cx="256" cy="418" rx="185" ry="30" fill="#000000" opacity=".5" filter="url(#p3850-f)"></ellipse>
+        <ellipse cx="256" cy="410" rx="200" ry="40" fill="#f0b429" opacity=".45" filter="url(#p3850-f)"></ellipse>
+        <use href="#p3850-cl" transform="translate(148,384) scale(.62)"></use>
+        <use href="#p3850-cl" transform="translate(143,358) scale(.62)"></use>
+        <use href="#p3850-cl" transform="translate(151,332) scale(.62)"></use>
+        <use href="#p3850-cl" transform="translate(146,306) scale(.62)"></use>
+        <use href="#p3850-cl" transform="translate(358,388) scale(.66)"></use>
+        <use href="#p3850-cl" transform="translate(352,360) scale(.66)"></use>
+        <use href="#p3850-cl" transform="translate(361,332) scale(.66)"></use>
+        <use href="#p3850-cl" transform="translate(354,304) scale(.66)"></use>
+        <use href="#p3850-cl" transform="translate(359,276) scale(.66)"></use>
+        <use href="#p3850-cs" transform="translate(250,258) rotate(-5) scale(.92)"></use>
+        <use href="#p3850-s" transform="translate(126,102) scale(1.15)"></use>
+        <use href="#p3850-s" transform="translate(404,120) scale(.85)"></use>
+        <use href="#p3850-s" transform="translate(452,296) scale(.95)"></use>
+        <use href="#p3850-s" transform="translate(66,330) scale(.7)"></use>
+        <circle cx="256" cy="72" r="4" fill="#ffd75e" opacity=".75"></circle>
+      </svg>
