@@ -30,3 +30,17 @@ npm run preview  # предпросмотр сборки
 ## Переменные окружения
 
 - `FAZER_API_KEY` — ключ FazerCards для `tools/fetch-fazer-catalog.mjs`.
+
+## Развёртывание на сервере (Debian)
+
+Проект изолирован в `/opt/projects/izibalik`: Python-зависимости в `.venv`, Node.js через локальный `nvm` в `.nvm`, сборка в `app/dist`.
+
+```bash
+# однократно на хосте
+sudo bash deploy/server-setup.sh
+
+# клонирование, сборка, nginx, Let's Encrypt
+sudo bash deploy/deploy-izibalik.sh
+```
+
+Переменные: `IZIBALIK_REPO_URL`, `IZIBALIK_BRANCH`, `IZIBALIK_DOMAIN`.
