@@ -23,8 +23,9 @@ if [[ -s deploy/requirements.txt ]]; then
 fi
 
 export NVM_DIR="${PROJECT_ROOT}/.nvm"
+mkdir -p "$NVM_DIR"
 if [[ ! -s "${NVM_DIR}/nvm.sh" ]]; then
-  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | NVM_DIR="$NVM_DIR" bash
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 fi
 # shellcheck disable=SC1091
 source "${NVM_DIR}/nvm.sh"
