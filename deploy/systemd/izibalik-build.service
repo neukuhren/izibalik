@@ -10,7 +10,7 @@ RemainAfterExit=yes
 Environment=HOME=/root
 WorkingDirectory=/opt/projects/izibalik
 ExecStart=/opt/projects/izibalik/deploy/bootstrap-project.sh
-ExecStartPost=/bin/systemctl reload nginx.service
+ExecStartPost=/usr/sbin/nginx -s reload
 
 [Install]
 WantedBy=multi-user.target
