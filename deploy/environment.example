@@ -1,0 +1,15 @@
+# Скопируйте на сервер: /etc/izibalik/environment (chmod 600)
+# Не коммитьте реальные значения.
+
+# Telegram Bot API (бэкенд: валидация initData, рассылки, webhook)
+TELEGRAM_BOT_TOKEN=
+
+# FazerCards — tools/fetch-fazer-catalog.mjs и будущий бэкенд
+FAZER_API_KEY=
+
+# Platega — будущий бэкенд оплаты
+PLATEGA_MERCHANT_ID=
+PLATEGA_SECRET=
+
+# Слушатель API (когда появится бэкенд в репозитории)
+IZIBALIK_API_PORT=8787

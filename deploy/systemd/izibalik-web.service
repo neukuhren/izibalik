@@ -1,0 +1,17 @@
+[Unit]
+Description=Izibalik — статический сервер Mini App (serve)
+After=network-online.target izibalik-build.service
+Requires=izibalik-build.service
+Documentation=file:/opt/projects/izibalik/README.md
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/projects/izibalik
+EnvironmentFile=-/etc/izibalik/environment
+ExecStart=/opt/projects/izibalik/deploy/run-app.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
