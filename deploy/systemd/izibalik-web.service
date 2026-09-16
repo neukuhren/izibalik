@@ -6,6 +6,7 @@ Documentation=file:/opt/projects/izibalik/README.md
 
 [Service]
 Type=simple
+Environment=HOME=/root
 WorkingDirectory=/opt/projects/izibalik
 EnvironmentFile=-/etc/izibalik/environment
 ExecStart=/opt/projects/izibalik/deploy/run-app.sh

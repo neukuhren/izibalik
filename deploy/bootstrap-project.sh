@@ -4,6 +4,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
+export HOME="${HOME:-/root}"
 
 NODE_VERSION="${IZIBALIK_NODE_VERSION:-22}"
 
