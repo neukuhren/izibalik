@@ -1,0 +1,198 @@
+import { randomInt } from 'node:crypto';
+import {
+  insertOrder,
+  getOrder,
+  updateOrderStatus,
+  listOrdersByUser,
+  listAllOrders,
+  now,
+  type OrderRow,
+} from './db.js';
+import { getProduct, priceOf, discountFor } from './catalog.js';
+import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
+import { createFazerOrder, getFazerOrder, validatePlayerId } from './fazer.js';
+import { getProvider } from './payments.js';
+import { env } from './env.js';
+import { notifyUser } from './notify.js';
+
+export interface CreateOrderInput {
+  userId: number | null;
+  handle: string | null;
+  productId: string;
+  playerId: string;
+  method: string;
+  promoCode: string;
+}
+
+export interface CreateOrderResult {
+  ok: boolean;
+  orderId?: string;
+  redirect?: string;
+  error?: string;
+}
+
+function newOrderId(): string {
+  // IZ-XXXXX, проверка коллизии по БД.
+  for (let i = 0; i < 10; i++) {
+    const id = 'IZ-' + randomInt(10000, 99999);
+    if (!getOrder.get(id)) return id;
+  }
+  return 'IZ-' + Date.now().toString(36).toUpperCase();
+}
+
+export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
+  const product = getProduct(input.productId);
+  if (!product) return { ok: false, error: 'Товар не найден' };
+  if (!/^\d{8,12}$/.test(input.playerId)) return { ok: false, error: 'Некорректный Player ID' };
+
+  const cfg = getConfig();
+  if (cfg.active[product.id] === false) return { ok: false, error: 'Товар недоступен' };
+
+  const markup = markupOf(cfg, product.id, product.defaultMarkup);
+  const price = priceOf(product, markup);
+  const promo = findPromo(cfg, input.promoCode);
+  const discount = discountFor(price, promo);
+  const amount = Math.max(1, price - discount);
+  const buy = Math.round(product.buyUsd * env.fallbackRate);
+
+  const id = newOrderId();
+  const ts = now();
+
+  // Мягкая проверка ID у поставщика (не блокирует при недоступности).
+  const check = await validatePlayerId(product.offerId, input.playerId);
+  if (check.valid === false) return { ok: false, error: 'Player ID не найден' };
+
+  const method = input.method === 'card' ? 'card' : 'sbp';
+
+  let redirect = '';
+  try {
+    const pay = await getProvider().createPayment({
+      orderId: id,
+      amountRub: amount,
+      description: `${product.name} — ${input.playerId}`,
+    });
+    redirect = pay.redirect;
+  } catch (e) {
+    return { ok: false, error: 'Платёжный провайдер недоступен' };
+  }
+
+  insertOrder.run({
+    id,
+    user_id: input.userId,
+    handle: input.handle,
+    product_id: product.id,
+    player_id: input.playerId,
+    amount,
+    buy,
+    markup,
+    promo: promo ? promo.code : null,
+    method,
+    status: 'pending',
+    provider_id: null,
+    fazer_id: null,
+    redirect,
+    created_at: ts,
+    updated_at: ts,
+  });
+
+  // Заглушка: авто-оплата через N мс для тестов сквозного сценария.
+  if (env.paymentProvider === 'stub' && env.payStubAutopayMs > 0) {
+    setTimeout(() => {
+      void markOrderPaid(id).catch(() => {});
+    }, env.payStubAutopayMs);
+  }
+
+  return { ok: true, orderId: id, redirect };
+}
+
+// Платёж подтверждён (webhook/заглушка) → оплачен, запускаем выдачу.
+export async function markOrderPaid(orderId: string): Promise<void> {
+  const o = getOrder.get(orderId) as OrderRow | undefined;
+  if (!o) return;
+  if (o.status !== 'pending') return;
+  updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: null, provider_id: null, updated_at: now() });
+  if (o.promo) bumpPromoUsed(o.promo);
+  if (o.user_id) void notifyUser(o.user_id, `✅ Оплата получена по заказу ${o.id}. Выдаём ${productName(o.product_id)}…`);
+  await fulfillOrder(orderId);
+}
+
+function productName(id: string): string {
+  return getProduct(id)?.name ?? id;
+}
+
+// Выдача через FazerCards. Идемпотентность по orderId.
+export async function fulfillOrder(orderId: string): Promise<void> {
+  const o = getOrder.get(orderId) as OrderRow | undefined;
+  if (!o) return;
+  if (o.status !== 'paid') return;
+  const product = getProduct(o.product_id);
+  if (!product) {
+    updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: null, provider_id: null, updated_at: now() });
+    return;
+  }
+  try {
+    const f = await createFazerOrder(product.offerId, o.player_id, o.id);
+    if (f.status === 'done') {
+      updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен: ${product.name} зачислен на ID ${o.player_id}.`);
+    } else if (f.status === 'failed') {
+      updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+      if (o.user_id) void notifyUser(o.user_id, `⚠️ Не удалось выдать заказ ${o.id}. Средства вернём, поддержка свяжется.`);
+    } else {
+      // pending/processing у поставщика — оставляем 'paid', дозабор при опросе.
+      updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+    }
+  } catch (e) {
+    updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: null, provider_id: null, updated_at: now() });
+    if (o.user_id) void notifyUser(o.user_id, `⚠️ Ошибка выдачи заказа ${o.id}. Поддержка свяжется с вами.`);
+  }
+}
+
+// Ленивое обновление статуса у поставщика (вызывается при опросе /api/order).
+export async function refreshOrder(orderId: string): Promise<OrderRow | undefined> {
+  const o = getOrder.get(orderId) as OrderRow | undefined;
+  if (!o) return undefined;
+  if (o.status === 'paid' && o.fazer_id) {
+    const f = await getFazerOrder(o.fazer_id);
+    if (f && f.status === 'done') {
+      updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен.`);
+      return getOrder.get(orderId) as unknown as OrderRow;
+    }
+    if (f && f.status === 'failed') {
+      updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+      return getOrder.get(orderId) as unknown as OrderRow;
+    }
+  }
+  return o;
+}
+
+// --- сериализация для фронта ---
+
+export function toClientOrder(o: OrderRow) {
+  return {
+    id: o.id,
+    playerId: o.player_id,
+    productId: o.product_id,
+    amount: o.amount,
+    buy: o.buy,
+    status: o.status,
+    createdAt: o.created_at,
+  };
+}
+
+export function toAdminOrder(o: OrderRow) {
+  return {
+    ...toClientOrder(o),
+    user: o.handle ?? (o.user_id ? 'id' + o.user_id : '—'),
+    userId: o.user_id,
+  };
+}
+
+export function myOrders(userId: number) {
+  return (listOrdersByUser.all(userId) as unknown as OrderRow[]).map(toClientOrder);
+}
+
+export function adminOrders() {
+  return (listAllOrders.all() as unknown as OrderRow[]).map(toAdminOrder);
+}

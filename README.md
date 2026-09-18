@@ -1,46 +1,20 @@
 # IZIBALIK — PUBG UC
 
-Telegram Mini App: витрина и продажа PUBG UC / Fazer-карт, каталог товаров, админ-панель (наценки 0–99% на товар + общая).
+Telegram Mini App магазина PUBG UC / Prime / Elite Pass / New State NC с выдачей через FazerCards.
 
-## Структура
+## Состав
 
-- `app/` — фронтенд (Vite + React 19 + TypeScript)
-  - `src/view/AppView.tsx` — представление витрины
-  - `src/logic/prototypeLogic.ts` — логика витрины и админки
-  - `src/logic/useApp.ts` — React-обвязка над логикой
-  - `src/telegram.ts` — bootstrap Telegram Mini App
-  - `public/art/` — арты товаров (webp/svg)
-- `tools/` — утилиты
-  - `fetch-fazer-catalog.mjs` — сверка каталога и закупочных цен с FazerCards
-  - `compress-arts.mjs` — сжатие PNG-артов в webp
-- `legal/` — публичные документы (оферта, политика, условия)
+- `app/` — фронтенд (Vite + React + TypeScript), Telegram Mini App
+- `backend/` — API + Telegram-бот + выдача через FazerCards (Node 22+, `node:sqlite`)
+- `tools/` — утилиты: сверка каталога FazerCards, сжатие артов
+- `legal/` — оферта, политика, условия
 
 ## Запуск
 
 ```bash
-cd app
-npm install
-npm run dev      # разработка
-npm run build    # прод-сборка
-npm run preview  # предпросмотр сборки
+cd app && npm install && npm run build
+cd ../backend && npm install && cp .env.example .env   # заполнить токены
+npm run build && npm start
 ```
 
-Открывается как Telegram Mini App; вне Telegram работает в браузере (dev).
-
-## Переменные окружения
-
-- `FAZER_API_KEY` — ключ FazerCards для `tools/fetch-fazer-catalog.mjs`.
-
-## Развёртывание на сервере (Debian)
-
-Проект изолирован в `/opt/projects/izibalik`: Python-зависимости в `.venv`, Node.js через локальный `nvm` в `.nvm`, сборка в `app/dist`.
-
-```bash
-# однократно на хосте
-sudo bash deploy/server-setup.sh
-
-# клонирование, сборка, nginx, Let's Encrypt
-sudo bash deploy/deploy-izibalik.sh
-```
-
-Переменные: `IZIBALIK_REPO_URL`, `IZIBALIK_BRANCH`, `IZIBALIK_DOMAIN`.
+Бекенд раздаёт собранный фронт (`SERVE_DIST=../app/dist`) и поднимает бота. Детали и деплой — в `backend/README.md`.

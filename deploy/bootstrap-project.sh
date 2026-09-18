@@ -37,4 +37,8 @@ cd app
 npm ci
 npm run build
 
-echo "Сборка готова: ${PROJECT_ROOT}/app/dist"
+cd "${PROJECT_ROOT}/backend"
+npm ci
+npm run build
+
+echo "Сборка готова: ${PROJECT_ROOT}/app/dist и ${PROJECT_ROOT}/backend/dist"

@@ -1,0 +1,18 @@
+[Unit]
+Description=Izibalik — API Fastify + Telegram-бот
+After=network-online.target izibalik-build.service
+Requires=izibalik-build.service
+Documentation=file:/opt/projects/izibalik/backend/README.md
+
+[Service]
+Type=simple
+Environment=HOME=/root
+WorkingDirectory=/opt/projects/izibalik/backend
+EnvironmentFile=-/opt/projects/izibalik/backend/.env
+ExecStart=/opt/projects/izibalik/deploy/run-api.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

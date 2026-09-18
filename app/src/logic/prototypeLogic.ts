@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Логика витрины и админки. Будет перетипизирована и разбита при интеграции бэкенда (API поставщика, оплата).
+// Логика витрины и админки.
 import { Logic } from './base';
 import { getTgUser, getInitData } from '../telegram';
 
