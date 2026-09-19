@@ -1,0 +1,12 @@
+[Unit]
+Description=Izibalik — опрос Fazer каждые 5 минут (заказы paid)
+Documentation=file:/opt/projects/izibalik/backend/README.md
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+AccuracySec=1min
+Unit=izibalik-refresh-orders.service
+
+[Install]
+WantedBy=timers.target

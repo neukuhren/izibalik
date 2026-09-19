@@ -97,6 +97,9 @@ export const updateOrderStatus = db.prepare(
 );
 export const listOrdersByUser = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 100`);
 export const listAllOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC LIMIT 500`);
+export const listPaidOrdersWithFazer = db.prepare(
+  `SELECT id FROM orders WHERE status = 'paid' AND fazer_id IS NOT NULL AND fazer_id != '' ORDER BY updated_at ASC`,
+);
 
 export const getConfigRow = db.prepare(`SELECT json FROM config WHERE id = 1`);
 export const setConfigRow = db.prepare(`

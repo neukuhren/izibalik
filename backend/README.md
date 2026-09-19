@@ -57,6 +57,8 @@ npm run build && npm start
 
 Статусы заказа: `pending → paid → done` (или `failed` / `fulfill_failed`).
 
+Фоновая синхронизация заказов в `paid` с Fazer (каждые 5 мин): systemd timer `izibalik-refresh-orders.timer`, скрипт `npm run job:refresh-paid` (см. `deploy/systemd/`).
+
 ## Подключить реальную платёжку
 
 1. Реализовать `PaymentProvider` в `src/payments.ts` (метод `createPayment` → `{ redirect }`).

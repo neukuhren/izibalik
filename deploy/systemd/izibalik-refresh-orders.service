@@ -1,0 +1,14 @@
+[Unit]
+Description=Izibalik — синхронизация статусов Fazer (paid → done)
+After=network-online.target izibalik-api.service
+Documentation=file:/opt/projects/izibalik/backend/README.md
+
+[Service]
+Type=oneshot
+Environment=HOME=/root
+WorkingDirectory=/opt/projects/izibalik/backend
+EnvironmentFile=-/opt/projects/izibalik/backend/.env
+ExecStart=/opt/projects/izibalik/deploy/run-refresh-paid-orders.sh
+
+[Install]
+WantedBy=multi-user.target
