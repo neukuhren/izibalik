@@ -17,6 +17,21 @@ export async function startBot(): Promise<void> {
   }
   bot = new Bot(env.botToken);
 
+  if (env.miniAppUrl) {
+    try {
+      await bot.api.setChatMenuButton({
+        menu_button: {
+          type: 'web_app',
+          text: 'Магазин UC',
+          web_app: { url: env.miniAppUrl },
+        },
+      });
+      console.log(`[bot] menu button → ${env.miniAppUrl}`);
+    } catch (e) {
+      console.warn('[bot] не удалось обновить menu button:', (e as Error).message);
+    }
+  }
+
   bot.command('start', async (ctx) => {
     const u = ctx.from;
     if (u) {
