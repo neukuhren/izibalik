@@ -65,14 +65,29 @@ export interface ValidateResult {
   valid: boolean;
   nickname?: string;
 }
-export async function validatePlayerId(offerId: string, playerId: string): Promise<ValidateResult> {
+export async function validatePlayerId(
+  categoryId: string,
+  offerId: string,
+  playerId: string,
+): Promise<ValidateResult> {
   try {
-    const d = await req<any>('POST', '/topups/validate-id', { offer_id: offerId, account_id: playerId });
+    const d = await req<any>('POST', '/topups/validate-id', {
+      category_id: categoryId,
+      offer_id: offerId,
+      fields: { player_id: playerId },
+    });
     return { valid: d?.valid !== false, nickname: d?.nickname ?? d?.username };
   } catch {
-    // Поставщик не смог проверить — не блокируем заказ, помечаем как непроверенный.
+    // Поставщик не смог проверить (для pubg_mobile_auto часто недоступно) — не блокируем заказ.
     return { valid: true };
   }
+}
+
+function parseFazerOrderPayload(d: any, fallbackId = ''): FazerOrder {
+  const order = d?.order ?? d;
+  const fazerId = String(order?.id ?? d?.order_id ?? d?.id ?? fallbackId);
+  const status = mapFazerStatus(order?.status ?? d?.status);
+  return { fazerId, status, raw: d };
 }
 
 export interface FazerOrder {
@@ -86,28 +101,34 @@ function mapFazerStatus(s: string | undefined): FazerOrder['status'] {
   const v = String(s ?? '').toLowerCase();
   if (['completed', 'success', 'done', 'delivered'].includes(v)) return 'done';
   if (['failed', 'error', 'canceled', 'cancelled', 'refunded'].includes(v)) return 'failed';
-  if (['processing', 'in_progress', 'sent'].includes(v)) return 'processing';
+  if (['processing', 'in_progress', 'sent', 'created'].includes(v)) return 'processing';
   return 'pending';
 }
 
 export async function createFazerOrder(
+  categoryId: string,
   offerId: string,
   playerId: string,
   idempotencyKey: string,
 ): Promise<FazerOrder> {
-  const d = await req<any>('POST', '/topups/order', { offer_id: offerId, account_id: playerId }, idempotencyKey);
-  return {
-    fazerId: String(d?.order_id ?? d?.id ?? ''),
-    status: mapFazerStatus(d?.status),
-    raw: d,
-  };
+  const d = await req<any>(
+    'POST',
+    '/topups/order',
+    {
+      category_id: categoryId,
+      offer_id: offerId,
+      fields: { player_id: playerId },
+    },
+    idempotencyKey,
+  );
+  return parseFazerOrderPayload(d);
 }
 
 export async function getFazerOrder(fazerId: string): Promise<FazerOrder | null> {
   if (!fazerId) return null;
   try {
     const d = await req<any>('GET', '/topups/order/' + encodeURIComponent(fazerId));
-    return { fazerId, status: mapFazerStatus(d?.status), raw: d };
+    return parseFazerOrderPayload(d, fazerId);
   } catch {
     return null;
   }

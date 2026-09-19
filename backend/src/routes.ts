@@ -11,6 +11,7 @@ import {
   markOrderPaid,
   myOrders,
   adminOrders,
+  retryFulfillOrder,
   toClientOrder,
 } from './orders.js';
 import { audienceCounts, startBroadcast, broadcastStatus, type Audience } from './broadcast.js';
@@ -65,6 +66,18 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const user = userFromInit((req.body as InitBody).initData);
     if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
     return { ok: true, orders: adminOrders() };
+  });
+
+  app.post('/api/orders/retry', async (req, reply) => {
+    const body = req.body as InitBody & { orderId?: string };
+    const user = userFromInit(body.initData);
+    if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
+    const orderId = String(body.orderId || '').trim();
+    if (!orderId) return reply.code(400).send({ ok: false, error: 'orderId required' });
+    const res = await retryFulfillOrder(orderId);
+    if (!res.ok) return reply.send({ ok: false, error: res.error });
+    const o = getOrder.get(orderId) as OrderRow | undefined;
+    return { ok: true, order: o ? toClientOrder(o) : null };
   });
 
   // --- Создать платёж/заказ ---
