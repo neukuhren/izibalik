@@ -38,7 +38,7 @@ sed -i \
   -e 's|^SERVE_DIST=.*|SERVE_DIST=|' \
   -e 's|^MINIAPP_URL=.*|MINIAPP_URL=https://izibalik.shop/|' \
   -e 's|^PUBLIC_URL=.*|PUBLIC_URL=https://izibalik.shop|' \
-  -e 's|^PAYMENT_PROVIDER=.*|PAYMENT_PROVIDER=stub|' \
+  -e 's|^PAYMENT_PROVIDER=.*|PAYMENT_PROVIDER=platega|' \
   "$ENV_FILE"
 
 echo "Создан ${ENV_FILE} — проверьте FAZER_API_KEY и платёжку."

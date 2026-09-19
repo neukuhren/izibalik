@@ -91,6 +91,7 @@ VALUES (@id, @user_id, @handle, @product_id, @player_id, @amount, @buy, @markup,
 `);
 
 export const getOrder = db.prepare(`SELECT * FROM orders WHERE id = ?`);
+export const getOrderByProviderId = db.prepare(`SELECT * FROM orders WHERE provider_id = ? LIMIT 1`);
 export const updateOrderStatus = db.prepare(
   `UPDATE orders SET status=@status, fazer_id=COALESCE(@fazer_id, fazer_id), provider_id=COALESCE(@provider_id, provider_id), updated_at=@updated_at WHERE id=@id`,
 );

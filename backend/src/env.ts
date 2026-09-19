@@ -47,6 +47,11 @@ export const env = {
   publicUrl: str('PUBLIC_URL', 'http://localhost:8080'),
   payStubAutopayMs: num('PAY_STUB_AUTOPAY_MS', 0),
 
+  plategaBase: str('PLATEGA_BASE', 'https://app.platega.io'),
+  plategaMerchantId: str('PLATEGA_MERCHANT_ID'),
+  plategaSecret: str('PLATEGA_SECRET'),
+  plategaMethodSbp: num('PLATEGA_METHOD_SBP', 2),
+
   dbPath: str('DB_PATH', './data/izibalik.sqlite'),
 };
 

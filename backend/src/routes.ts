@@ -1,9 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { env, isAdmin } from './env.js';
 import { userFromInit, displayHandle } from './telegram.js';
-import { upsertUser, now, getOrder, type OrderRow } from './db.js';
+import { upsertUser, now, getOrder, getOrderByProviderId, type OrderRow } from './db.js';
 import { getConfig, saveConfig, type ShopConfig } from './config.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
+import { verifyPlategaCallback, type PlategaCallbackBody } from './platega.js';
 import {
   createOrder,
   refreshOrder,
@@ -176,6 +177,30 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 <div style="font-family:system-ui;max-width:420px;margin:40px auto;text-align:center">
   <h2>✅ Оплачено</h2><p>Заказ ${id} оплачен. Вернитесь в Telegram — выдача идёт.</p>
 </div>`;
+  });
+
+  // --- Platega: callback (Настройки → Callback URLs в ЛК) ---
+  app.post('/api/webhooks/platega', async (req, reply) => {
+    if (!verifyPlategaCallback(req.headers as Record<string, string | string[] | undefined>)) {
+      return reply.code(401).send({ ok: false });
+    }
+    const body = req.body as PlategaCallbackBody;
+    const status = String(body.status || '').toUpperCase();
+    let orderId = String(body.payload || '').trim();
+    if (!orderId && body.id) {
+      const row = getOrderByProviderId.get(String(body.id)) as OrderRow | undefined;
+      if (row) orderId = row.id;
+    }
+    if (!orderId) return reply.send({ ok: true });
+
+    if (status === 'CONFIRMED') {
+      const o = getOrder.get(orderId) as OrderRow | undefined;
+      if (o && body.amount != null && Math.round(body.amount) !== o.amount) {
+        req.log.warn({ orderId, amount: body.amount, expected: o.amount }, 'platega amount mismatch');
+      }
+      await markOrderPaid(orderId);
+    }
+    return reply.send({ ok: true });
   });
 
   // --- Health ---

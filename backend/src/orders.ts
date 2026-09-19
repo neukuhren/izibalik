@@ -65,15 +65,19 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const method = input.method === 'card' ? 'card' : 'sbp';
 
   let redirect = '';
+  let providerId: string | null = null;
   try {
     const pay = await getProvider().createPayment({
       orderId: id,
       amountRub: amount,
       description: `${product.name} — ${input.playerId}`,
+      method,
     });
     redirect = pay.redirect;
+    providerId = pay.providerId ?? null;
   } catch (e) {
-    return { ok: false, error: 'Платёжный провайдер недоступен' };
+    const msg = (e as Error).message || 'Платёжный провайдер недоступен';
+    return { ok: false, error: msg };
   }
 
   insertOrder.run({
@@ -88,7 +92,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     promo: promo ? promo.code : null,
     method,
     status: 'pending',
-    provider_id: null,
+    provider_id: providerId,
     fazer_id: null,
     redirect,
     created_at: ts,

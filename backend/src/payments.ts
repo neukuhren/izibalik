@@ -1,19 +1,16 @@
 import { env } from './env.js';
-
-// Абстракция платёжного провайдера (карта/СБП). Сейчас активна заглушка.
-// Чтобы подключить реального провайдера (YooKassa/CryptoCloud/агрегатор):
-//   1. реализовать PaymentProvider,
-//   2. вернуть его из getProvider() по env.paymentProvider,
-//   3. добавить webhook-роут, вызывающий markOrderPaid(orderId) после подтверждения.
+import { createPlategaPayment } from './platega.js';
 
 export interface PaymentRequest {
   orderId: string;
   amountRub: number;
   description: string;
+  method?: 'sbp' | 'card';
 }
 
 export interface PaymentResult {
   redirect: string;
+  providerId?: string;
 }
 
 export interface PaymentProvider {
@@ -21,8 +18,6 @@ export interface PaymentProvider {
   createPayment(req: PaymentRequest): Promise<PaymentResult>;
 }
 
-// Заглушка: redirect ведёт на страницу /pay-mock/:id самого бэкенда,
-// где заказ можно пометить оплаченным вручную (или авто через PAY_STUB_AUTOPAY_MS).
 class StubProvider implements PaymentProvider {
   readonly name = 'stub';
   async createPayment(req: PaymentRequest): Promise<PaymentResult> {
@@ -30,12 +25,22 @@ class StubProvider implements PaymentProvider {
   }
 }
 
+class PlategaProvider implements PaymentProvider {
+  readonly name = 'platega';
+  async createPayment(req: PaymentRequest): Promise<PaymentResult> {
+    const payMethod = req.method === 'card' ? 'card' : 'sbp';
+    const res = await createPlategaPayment(req.orderId, req.amountRub, req.description, payMethod);
+    return { redirect: res.redirect, providerId: res.transactionId || undefined };
+  }
+}
+
 let provider: PaymentProvider | null = null;
 export function getProvider(): PaymentProvider {
   if (provider) return provider;
   switch (env.paymentProvider) {
-    // case 'yookassa': provider = new YooKassaProvider(); break;
-    // case 'cryptocloud': provider = new CryptoCloudProvider(); break;
+    case 'platega':
+      provider = new PlategaProvider();
+      break;
     default:
       provider = new StubProvider();
   }
