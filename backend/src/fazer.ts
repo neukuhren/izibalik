@@ -127,7 +127,8 @@ export async function createFazerOrder(
 export async function getFazerOrder(fazerId: string): Promise<FazerOrder | null> {
   if (!fazerId) return null;
   try {
-    const d = await req<any>('GET', '/topups/order/' + encodeURIComponent(fazerId));
+    // Актуальный API: GET /orders/{id} (старый /topups/order/{id} отдаёт 404).
+    const d = await req<any>('GET', '/orders/' + encodeURIComponent(fazerId));
     return parseFazerOrderPayload(d, fazerId);
   } catch {
     return null;

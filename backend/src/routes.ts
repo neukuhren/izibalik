@@ -58,14 +58,14 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.post('/api/my-orders', async (req, reply) => {
     const user = userFromInit((req.body as InitBody).initData);
     if (!user) return reply.code(401).send({ ok: false });
-    return { ok: true, orders: myOrders(user.id) };
+    return { ok: true, orders: await myOrders(user.id) };
   });
 
   // --- Заказы (админка) ---
   app.post('/api/orders', async (req, reply) => {
     const user = userFromInit((req.body as InitBody).initData);
     if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
-    return { ok: true, orders: adminOrders() };
+    return { ok: true, orders: await adminOrders() };
   });
 
   app.post('/api/orders/retry', async (req, reply) => {

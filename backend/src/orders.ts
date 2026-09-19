@@ -206,10 +206,18 @@ export function toAdminOrder(o: OrderRow) {
   };
 }
 
-export function myOrders(userId: number) {
+export async function myOrders(userId: number) {
+  const rows = listOrdersByUser.all(userId) as unknown as OrderRow[];
+  for (const o of rows) {
+    if (o.status === 'paid' && o.fazer_id) await refreshOrder(o.id);
+  }
   return (listOrdersByUser.all(userId) as unknown as OrderRow[]).map(toClientOrder);
 }
 
-export function adminOrders() {
+export async function adminOrders() {
+  const rows = listAllOrders.all() as unknown as OrderRow[];
+  for (const o of rows) {
+    if (o.status === 'paid' && o.fazer_id) await refreshOrder(o.id);
+  }
   return (listAllOrders.all() as unknown as OrderRow[]).map(toAdminOrder);
 }
