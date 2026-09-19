@@ -5,6 +5,7 @@ import {
   updateOrderStatus,
   listOrdersByUser,
   listAllOrders,
+  listPaidOrdersWithFazer,
   now,
   type OrderRow,
 } from './db.js';
@@ -182,6 +183,28 @@ export async function refreshOrder(orderId: string): Promise<OrderRow | undefine
     }
   }
   return o;
+}
+
+export interface RefreshPaidOrdersResult {
+  checked: number;
+  done: number;
+  failed: number;
+}
+
+/** Фоновая синхронизация: все заказы paid с fazer_id → done / fulfill_failed по API Fazer. */
+export async function refreshAllPaidOrders(): Promise<RefreshPaidOrdersResult> {
+  const ids = (listPaidOrdersWithFazer.all() as { id: string }[]).map((r) => r.id);
+  let done = 0;
+  let failed = 0;
+  for (const id of ids) {
+    const before = getOrder.get(id) as OrderRow | undefined;
+    if (!before || before.status !== 'paid') continue;
+    const after = await refreshOrder(id);
+    if (!after || after.id !== id) continue;
+    if (after.status === 'done') done++;
+    else if (after.status === 'fulfill_failed') failed++;
+  }
+  return { checked: ids.length, done, failed };
 }
 
 // --- сериализация для фронта ---
