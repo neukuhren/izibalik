@@ -59,7 +59,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const ts = now();
 
   // Мягкая проверка ID у поставщика (не блокирует при недоступности).
-  const check = await validatePlayerId(product.offerId, input.playerId);
+  const check = await validatePlayerId(product.channel, product.offerId, input.playerId);
   if (check.valid === false) return { ok: false, error: 'Player ID не найден' };
 
   const method = input.method === 'card' ? 'card' : 'sbp';
@@ -135,7 +135,7 @@ export async function fulfillOrder(orderId: string): Promise<void> {
     return;
   }
   try {
-    const f = await createFazerOrder(product.offerId, o.player_id, o.id);
+    const f = await createFazerOrder(product.channel, product.offerId, o.player_id, o.id);
     if (f.status === 'done') {
       updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
       if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен: ${product.name} зачислен на ID ${o.player_id}.`);
@@ -147,9 +147,22 @@ export async function fulfillOrder(orderId: string): Promise<void> {
       updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
     }
   } catch (e) {
+    console.error('[fulfillOrder]', orderId, (e as Error).message);
     updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: null, provider_id: null, updated_at: now() });
     if (o.user_id) void notifyUser(o.user_id, `⚠️ Ошибка выдачи заказа ${o.id}. Поддержка свяжется с вами.`);
   }
+}
+
+/** Повтор выдачи после fulfill_failed (админ). Idempotency-Key = orderId у Fazer. */
+export async function retryFulfillOrder(orderId: string): Promise<{ ok: boolean; error?: string }> {
+  const o = getOrder.get(orderId) as OrderRow | undefined;
+  if (!o) return { ok: false, error: 'Заказ не найден' };
+  if (o.status !== 'fulfill_failed') return { ok: false, error: `Статус: ${o.status}` };
+  updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: null, provider_id: null, updated_at: now() });
+  await fulfillOrder(orderId);
+  const after = getOrder.get(orderId) as OrderRow | undefined;
+  if (after?.status === 'fulfill_failed') return { ok: false, error: 'Выдача снова не удалась' };
+  return { ok: true };
 }
 
 // Ленивое обновление статуса у поставщика (вызывается при опросе /api/order).
