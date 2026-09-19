@@ -42,8 +42,10 @@ export async function getRateRub(): Promise<number> {
 
 export async function getBalanceUsd(): Promise<number | null> {
   try {
-    const d = await req<{ balance?: number; currency?: string }>('GET', '/balance');
-    return typeof d?.balance === 'number' ? d.balance : null;
+    const d = await req<{ balance?: number | string; ok?: boolean; currency?: string }>('GET', '/balance');
+    const raw = d?.balance;
+    const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number.parseFloat(raw) : NaN;
+    return Number.isFinite(n) ? n : null;
   } catch {
     return null;
   }
