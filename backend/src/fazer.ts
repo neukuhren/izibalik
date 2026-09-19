@@ -100,7 +100,7 @@ export interface FazerOrder {
 function mapFazerStatus(s: string | undefined): FazerOrder['status'] {
   const v = String(s ?? '').toLowerCase();
   if (['completed', 'success', 'done', 'delivered'].includes(v)) return 'done';
-  if (['failed', 'error', 'canceled', 'cancelled', 'refunded'].includes(v)) return 'failed';
+  if (['failed', 'error', 'canceled', 'cancelled', 'refunded', 'refund'].includes(v)) return 'failed';
   if (['processing', 'in_progress', 'sent', 'created'].includes(v)) return 'processing';
   return 'pending';
 }
