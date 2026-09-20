@@ -3,6 +3,7 @@ import { env, isAdmin } from './env.js';
 import { userFromInit, displayHandle } from './telegram.js';
 import { upsertUser, now, getOrder, getOrderByProviderId, type OrderRow } from './db.js';
 import { getConfig, saveConfig, type ShopConfig } from './config.js';
+import { catalogForClient } from './catalog.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
 import { verifyPlategaCallback, type PlategaCallbackBody } from './platega.js';
 import {
@@ -41,6 +42,11 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const [balance, rate] = await Promise.all([getBalanceUsd(), getRateRub()]);
     if (balance == null) return { ok: false };
     return { ok: true, balance_usd: balance, rate_rub: rate };
+  });
+
+  app.get('/api/catalog', async () => {
+    const rate = await getRateRub();
+    return { ok: true, rate_rub: rate, products: catalogForClient(rate) };
   });
 
   // --- Регистрация пользователя (аудитория рассылки) ---

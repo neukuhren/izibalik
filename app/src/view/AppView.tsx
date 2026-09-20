@@ -673,7 +673,7 @@ export default function AppView({ v }: { v: Vals }) {
         </div>
       </div>
       <div style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'11px',color:'#8b90ab'}}>
-        <span style={{fontVariantNumeric:'tabular-nums'}}>закуп {p.buyF} ₽</span>
+        <span style={{fontVariantNumeric:'tabular-nums'}} title="Закуп у Fazer × курс USD">закуп {p.buyF} ₽</span>
         <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(123,47,255,.1)',border:'1px solid rgba(123,47,255,.35)',borderRadius:'8px',padding:'3px 4px'}}>
           <div onClick={p.dec} style={{cursor:'pointer',width:'22px',height:'22px',display:'flex',alignItems:'center',justifyContent:'center',color:'#b18cff',fontSize:'15px',fontWeight:'700'}}>−</div>
           <span style={{fontFamily:'ui-monospace,Menlo,monospace',fontSize:'11.5px',color:'#d4c2ff',minWidth:'32px',textAlign:'center'}}>{p.markup}%</span>
