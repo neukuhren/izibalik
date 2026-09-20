@@ -75,7 +75,7 @@ export async function createPlategaPayment(
   }
 
   const transactionId = String(data.transactionId || data.id || '');
-  const redirect = String(data.redirect || '');
+  const redirect = String(data.redirect || data.url || '');
   if (!redirect) throw new Error('Platega не вернула redirect');
   return { transactionId, redirect };
 }

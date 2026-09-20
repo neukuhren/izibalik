@@ -12,7 +12,10 @@ import {
   myOrders,
   adminOrders,
   retryFulfillOrder,
+  adminOrderAction,
+  type AdminOrderAction,
   toClientOrder,
+  toAdminOrder,
 } from './orders.js';
 import { audienceCounts, startBroadcast, broadcastStatus, type Audience } from './broadcast.js';
 
@@ -78,6 +81,21 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     if (!res.ok) return reply.send({ ok: false, error: res.error });
     const o = getOrder.get(orderId) as OrderRow | undefined;
     return { ok: true, order: o ? toClientOrder(o) : null };
+  });
+
+  app.post('/api/orders/action', async (req, reply) => {
+    const body = req.body as InitBody & { orderId?: string; action?: AdminOrderAction };
+    const user = userFromInit(body.initData);
+    if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
+    const orderId = String(body.orderId || '').trim();
+    const action = body.action;
+    if (!orderId || !action || !['resolve', 'refund', 'resend'].includes(action)) {
+      return reply.code(400).send({ ok: false, error: 'orderId and action required' });
+    }
+    const res = await adminOrderAction(orderId, action);
+    if (!res.ok) return reply.send({ ok: false, error: res.error });
+    const row = getOrder.get(orderId) as OrderRow | undefined;
+    return { ok: true, order: row ? toAdminOrder(row) : null };
   });
 
   // --- Создать платёж/заказ ---
