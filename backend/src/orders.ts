@@ -12,7 +12,7 @@ import {
 } from './db.js';
 import { getProduct, priceOf, discountFor } from './catalog.js';
 import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
-import { createFazerOrder, getFazerOrder, validatePlayerId } from './fazer.js';
+import { createFazerOrder, getFazerOrder, getRateRub, validatePlayerId } from './fazer.js';
 import { getProvider } from './payments.js';
 import { env } from './env.js';
 import { notifyUser } from './notify.js';
@@ -50,12 +50,13 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const cfg = getConfig();
   if (cfg.active[product.id] === false) return { ok: false, error: 'Товар недоступен' };
 
+  const rate = await getRateRub();
   const markup = markupOf(cfg, product.id, product.defaultMarkup);
-  const price = priceOf(product, markup);
+  const price = priceOf(product, markup, rate);
   const promo = findPromo(cfg, input.promoCode);
   const discount = discountFor(price, promo);
   const amount = Math.max(1, price - discount);
-  const buy = Math.round(product.buyUsd * env.fallbackRate);
+  const buy = Math.round(product.buyUsd * rate);
 
   const id = newOrderId();
   const ts = now();
