@@ -612,7 +612,10 @@ export default function AppView({ v }: { v: Vals }) {
       <div onClick={f.set} style={{cursor:'pointer',padding:'7px 12px',borderRadius:'9px',fontSize:'11px',fontWeight:'600',background:f.bg,border:`1px solid ${f.bd}`,color:f.c}}>{f.l}</div>
     </Fragment>))}
   </div>
-  {v.admRows.map((o: any, oi: number) => (<Fragment key={oi}>
+  {v.admToast && (<>
+    <div style={{padding:'10px 12px',borderRadius:'10px',background:'rgba(0,240,255,.1)',border:'1px solid rgba(0,240,255,.35)',color:'#00f0ff',fontSize:'12px',fontWeight:'600'}}>{v.admToast}</div>
+  </>)}
+  {v.admRows.map((o: any, oi: number) => (<Fragment key={o.idText || oi}>
     <div onClick={o.open} style={{cursor:'pointer',background:'rgba(19,21,40,.55)',border:'1px solid rgba(0,240,255,.1)',borderRadius:'13px',padding:'11px 13px',display:'flex',flexDirection:'column',gap:'7px'}} className="iziA99">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div style={{display:'flex',alignItems:'center',gap:'8px'}}>

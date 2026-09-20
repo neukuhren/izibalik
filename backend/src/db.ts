@@ -49,6 +49,16 @@ CREATE TABLE IF NOT EXISTS config (
 );
 `);
 
+try {
+  db.exec(`ALTER TABLE orders ADD COLUMN admin_dismissed INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  /* колонка уже есть */
+}
+db.exec(`
+UPDATE orders SET admin_dismissed = 1
+WHERE admin_dismissed = 0 AND status IN ('cancelled', 'done', 'refunded');
+`);
+
 export interface OrderRow {
   id: string;
   user_id: number | null;
@@ -66,6 +76,7 @@ export interface OrderRow {
   redirect: string | null;
   created_at: number;
   updated_at: number;
+  admin_dismissed?: number;
 }
 
 export interface UserRow {
@@ -94,6 +105,9 @@ export const getOrder = db.prepare(`SELECT * FROM orders WHERE id = ?`);
 export const getOrderByProviderId = db.prepare(`SELECT * FROM orders WHERE provider_id = ? LIMIT 1`);
 export const updateOrderStatus = db.prepare(
   `UPDATE orders SET status=@status, fazer_id=COALESCE(@fazer_id, fazer_id), provider_id=COALESCE(@provider_id, provider_id), updated_at=@updated_at WHERE id=@id`,
+);
+export const updateOrderAdmin = db.prepare(
+  `UPDATE orders SET status=@status, admin_dismissed=@admin_dismissed, fazer_id=COALESCE(@fazer_id, fazer_id), provider_id=COALESCE(@provider_id, provider_id), updated_at=@updated_at WHERE id=@id`,
 );
 export const listOrdersByUser = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 100`);
 export const listAllOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC LIMIT 500`);

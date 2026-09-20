@@ -87,7 +87,7 @@ export class PrototypeLogic extends Logic {
       promo: '', promoState: 'idle', promoShake: false, appliedPromo: null,
       payMethod: 'sbp', payProgress: 0, stage: -1, success: false, curOrderId: '',
       orderFilter: 'all', bulkMarkup: 22,
-      adminTab: 'dash', revPeriod: 'week', admSel: null, admSearch: '', admFilter: 'all',
+      adminTab: 'dash', revPeriod: 'week', admSel: null, admSearch: '', admFilter: 'issues', admToast: '',
       promos: [],
       npCode: '', npKind: 'pct', npVal: '10', npLimit: '100', npErr: false,
       bcText: '', bcAudience: 'all', bcBtnText: '', bcBtnUrl: '', bcCounts: null, bcStatus: null, bcErr: ''
@@ -223,24 +223,33 @@ export class PrototypeLogic extends Logic {
         this.setState({ myOrders: [...orders, ...extra].sort((a, b) => b.ts - a.ts) });
       }).catch(() => {});
   }
+  mapAdminOrderRow(o) {
+    const map = {
+      done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
+      cancelled: 'cancelled', refunded: 'refund',
+    };
+    return {
+      id: o.id, user: o.user || ('id' + (o.userId || '')), pid: o.playerId, productId: o.productId,
+      amount: o.amount, buy: o.buy || 0, status: map[o.status] || o.status,
+      dismissed: !!o.dismissed, ts: (o.createdAt || 0) * 1000,
+    };
+  }
   // заказы для админки — реальные, с сервера
   loadAdminOrders() {
-    if (!isAdminUser()) return;
-    fetch('/api/orders', {
+    if (!isAdminUser()) return Promise.resolve();
+    return fetch('/api/orders', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initData: getInitData() })
     }).then(r => r.json()).then(d => {
-      if (!d || !d.ok) return;
-      const map = {
-        done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
-        cancelled: 'cancelled', refunded: 'refund',
-      };
-      const orders = (d.orders || []).map(o => ({
-        id: o.id, user: o.user || ('id' + (o.userId || '')), pid: o.playerId, productId: o.productId,
-        amount: o.amount, buy: o.buy || 0, status: map[o.status] || o.status, ts: (o.createdAt || 0) * 1000
-      }));
+      if (!d || !d.ok) {
+        this.setState({ admToast: 'Не удалось загрузить заказы (проверьте Telegram)' });
+        return;
+      }
+      const orders = (d.orders || []).map(o => this.mapAdminOrderRow(o));
       this.setState({ adminOrders: orders });
-    }).catch(() => {});
+    }).catch(() => {
+      this.setState({ admToast: 'Сеть недоступна' });
+    });
   }
   // Пополнение баланса поставщика (Fazer crypto invoice)
   openTopup() { this.setState({ topup: { method: 'trc20', amount: '10', loading: false, error: '', payment: null } }); }
@@ -387,33 +396,26 @@ export class PrototypeLogic extends Logic {
   }
   admAct(kind) {
     const s = this.state;
-    if (!s.admSel || !getInitData()) return;
+    if (!s.admSel || !getInitData()) {
+      this.setState({ admToast: 'Нет авторизации Telegram — перезапустите мини-приложение' });
+      return;
+    }
     const id = s.admSel.id;
-    const label = { resend: 'Повторно отправлен поставщику', refund: 'Оформлен возврат средств', resolve: 'Помечен решённым оператором' }[kind];
     fetch('/api/orders/action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initData: getInitData(), orderId: id, action: kind })
     }).then(r => r.json()).then(d => {
-      if (!d || !d.ok) return;
-      this.loadAdminOrders();
-      const map = {
-        done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
-        cancelled: 'cancelled', refunded: 'refund',
-      };
-      if (d.order) {
-        const o = d.order;
-        const row = {
-          id: o.id, user: o.user || ('id' + (o.userId || '')), pid: o.playerId, productId: o.productId,
-          amount: o.amount, buy: o.buy || 0, status: map[o.status] || o.status, ts: (o.createdAt || 0) * 1000
-        };
-        this.setState({
-          admSel: { ...row, events: [...(s.admSel.events || []), { t: label, ts: Date.now() }] }
-        });
-      } else {
-        this.setState({ admSel: null });
+      if (!d || !d.ok) {
+        this.setState({ admToast: (d && d.error) ? String(d.error) : 'Не удалось сохранить' });
+        return;
       }
-    }).catch(() => {});
+      const msg = kind === 'resolve' ? 'Заказ закрыт' : kind === 'refund' ? 'Отмечен возврат' : 'Отправлено поставщику';
+      return this.loadAdminOrders().then(() => {
+        this.setState({ admSel: null, admToast: msg });
+        this.later(() => this.setState({ admToast: '' }), 3500);
+      });
+    }).catch(() => this.setState({ admToast: 'Сеть недоступна' }));
   }
   bumpM(id, d) {
     this.setState({
@@ -576,6 +578,7 @@ export class PrototypeLogic extends Logic {
     const q = s.admSearch.trim().toLowerCase();
     const issues = ['failed', 'refund', 'pending'];
     const admFilteredAll = s.adminOrders.filter(o => {
+      if (o.dismissed && s.admFilter === 'issues') return false;
       const okF = s.admFilter === 'all' || (s.admFilter === 'issues' ? issues.includes(o.status) : o.status === s.admFilter);
       const okQ = !q || o.id.toLowerCase().includes(q) || o.user.toLowerCase().includes(q) || o.pid.includes(q);
       return okF && okQ;
@@ -672,7 +675,13 @@ export class PrototypeLogic extends Logic {
       goProfile: () => this.setState({ screen: 'profile', tab: 'profile' }),
       backCheckout: () => this.setState({ screen: 'checkout' }),
       canAdmin: isAdminUser(),
-      enterAdmin: () => { if (isAdminUser()) { this.setState({ mode: 'admin' }); this.loadAdminOrders(); this.loadAudiences(); } },
+      enterAdmin: () => {
+        if (isAdminUser()) {
+          this.setState({ mode: 'admin', adminOrders: [], admSel: null });
+          this.loadAdminOrders();
+          this.loadAudiences();
+        }
+      },
       refreshOrders: () => this.loadAdminOrders(),
       exitAdmin: () => this.setState({ mode: 'client', screen: 'profile', tab: 'profile', admSel: null }),
       cShop: tabC('shop'), cOrders: tabC('orders'), cProfile: tabC('profile'),
@@ -784,7 +793,7 @@ export class PrototypeLogic extends Logic {
       admDash: s.adminTab === 'dash', admOrd: s.adminTab === 'orders',
       admProd: s.adminTab === 'products', admPromo: s.adminTab === 'promos', admBcast: s.adminTab === 'broadcast',
       aDash: () => this.setState({ adminTab: 'dash' }),
-      aOrd: () => this.setState({ adminTab: 'orders' }),
+      aOrd: () => { this.setState({ adminTab: 'orders' }); this.loadAdminOrders(); },
       aProd: () => this.setState({ adminTab: 'products' }),
       aPromo: () => this.setState({ adminTab: 'promos' }),
       aBcast: () => { this.setState({ adminTab: 'broadcast' }); this.loadAudiences(); },
@@ -820,7 +829,7 @@ export class PrototypeLogic extends Logic {
       balBorder: (s.supBalUsd != null && (s.supBalUsd * (s.supRate || 1)) < 500) ? 'rgba(255,46,126,.4)' : 'rgba(0,240,255,.12)',
       recent, hasRecent: recent.length > 0,
       admSearch: s.admSearch, setSearch: e => this.setState({ admSearch: e.target.value }),
-      admChips, admRows, admEmpty: admFilteredAll.length === 0,
+      admChips, admRows, admEmpty: admFilteredAll.length === 0, admToast: s.admToast || '',
       // detail
       dOpen: !!d,
       dIdText: d ? d.id : '', dUser: d ? d.user : '', dPid: d ? d.pid : '',
