@@ -154,6 +154,51 @@ export async function fulfillOrder(orderId: string): Promise<void> {
   }
 }
 
+export type AdminOrderAction = 'resolve' | 'refund' | 'resend';
+
+/** Действия админа в карточке заказа — сохраняются в БД. */
+export async function adminOrderAction(
+  orderId: string,
+  action: AdminOrderAction,
+): Promise<{ ok: boolean; error?: string }> {
+  const o = getOrder.get(orderId) as OrderRow | undefined;
+  if (!o) return { ok: false, error: 'Заказ не найден' };
+
+  if (action === 'resend') {
+    if (o.status === 'fulfill_failed') return retryFulfillOrder(orderId);
+    if (o.status === 'paid') {
+      await refreshOrder(orderId);
+      return { ok: true };
+    }
+    return { ok: false, error: `Повтор недоступен для статуса ${o.status}` };
+  }
+
+  if (action === 'refund') {
+    if (o.status === 'refunded' || o.status === 'cancelled') return { ok: true };
+    updateOrderStatus.run({
+      id: orderId,
+      status: 'refunded',
+      fazer_id: o.fazer_id,
+      provider_id: o.provider_id,
+      updated_at: now(),
+    });
+    return { ok: true };
+  }
+
+  // resolve — закрыть инцидент: неоплаченный → cancelled, ошибка выдачи → done вручную
+  if (o.status === 'done' || o.status === 'cancelled') return { ok: true };
+  const next =
+    o.status === 'pending' ? 'cancelled' : o.status === 'fulfill_failed' || o.status === 'paid' ? 'done' : 'done';
+  updateOrderStatus.run({
+    id: orderId,
+    status: next,
+    fazer_id: o.fazer_id,
+    provider_id: o.provider_id,
+    updated_at: now(),
+  });
+  return { ok: true };
+}
+
 /** Повтор выдачи после fulfill_failed (админ). Idempotency-Key = orderId у Fazer. */
 export async function retryFulfillOrder(orderId: string): Promise<{ ok: boolean; error?: string }> {
   const o = getOrder.get(orderId) as OrderRow | undefined;

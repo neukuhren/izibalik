@@ -2,6 +2,7 @@
 // Логика витрины и админки.
 import { Logic } from './base';
 import { getTgUser, getInitData } from '../telegram';
+import { openPaymentUrl } from '../utils/openPaymentUrl';
 
 // товары с растровыми артами; остальные — SVG-плейсхолдеры до дизайнера
 const PNG_ART = new Set(['p60', 'p325', 'p660', 'p1800', 'p3850', 'p8100', 'nc300', 'nc1580', 'nc3850', 'nc10230', 'nc16800', 'nc35000']);
@@ -210,7 +211,10 @@ export class PrototypeLogic extends Logic {
     fetch('/api/my-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) })
       .then(r => r.json()).then(d => {
         if (!d || !d.ok) return;
-        const map = { done: 'done', pending: 'pending', paid: 'processing', failed: 'failed', fulfill_failed: 'failed' };
+        const map = {
+          done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
+          cancelled: 'cancelled', refunded: 'refund',
+        };
         const orders = (d.orders || []).map(o => ({
           id: o.id, pid: o.playerId, productId: o.productId, amount: o.amount,
           buy: o.buy || 0, status: map[o.status] || o.status, ts: (o.createdAt || 0) * 1000
@@ -227,7 +231,10 @@ export class PrototypeLogic extends Logic {
       body: JSON.stringify({ initData: getInitData() })
     }).then(r => r.json()).then(d => {
       if (!d || !d.ok) return;
-      const map = { done: 'done', pending: 'pending', paid: 'processing', failed: 'failed', fulfill_failed: 'failed' };
+      const map = {
+        done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
+        cancelled: 'cancelled', refunded: 'refund',
+      };
       const orders = (d.orders || []).map(o => ({
         id: o.id, user: o.user || ('id' + (o.userId || '')), pid: o.playerId, productId: o.productId,
         amount: o.amount, buy: o.buy || 0, status: map[o.status] || o.status, ts: (o.createdAt || 0) * 1000
@@ -269,7 +276,8 @@ export class PrototypeLogic extends Logic {
       paid: { l: 'Оплачен', c: '#7b2fff' },
       pending: { l: 'Ожидает оплаты', c: '#d9ff00' },
       failed: { l: 'Ошибка', c: '#ff2e7e' },
-      refund: { l: 'Возврат', c: '#8b90ab' }
+      refund: { l: 'Возврат', c: '#8b90ab' },
+      cancelled: { l: 'Закрыт', c: '#8b90ab' }
     }[st] || { l: st, c: '#8b90ab' };
   }
   discount() {
@@ -298,8 +306,7 @@ export class PrototypeLogic extends Logic {
     }).then(r => r.json()).then(d => {
       if (d && d.ok && d.redirect) {
         this.setState({ curOrderId: d.orderId, payRedirect: d.redirect });
-        const tg = (window as any).Telegram && (window as any).Telegram.WebApp;
-        if (tg && tg.openLink) tg.openLink(d.redirect); else window.open(d.redirect, '_blank');
+        openPaymentUrl(d.redirect);
         this.pollOrder(d.orderId);
       } else {
         this.setState({ screen: 'payment', payErr: (d && d.error) ? String(d.error) : 'Не удалось создать платёж' });
@@ -380,16 +387,33 @@ export class PrototypeLogic extends Logic {
   }
   admAct(kind) {
     const s = this.state;
-    if (!s.admSel) return;
-    const st = { resend: 'processing', refund: 'refund', resolve: 'done' }[kind];
+    if (!s.admSel || !getInitData()) return;
     const id = s.admSel.id;
     const label = { resend: 'Повторно отправлен поставщику', refund: 'Оформлен возврат средств', resolve: 'Помечен решённым оператором' }[kind];
-    const upd = o => o.id === id ? { ...o, status: st } : o;
-    this.setState({
-      adminOrders: s.adminOrders.map(upd),
-      myOrders: s.myOrders.map(upd),
-      admSel: { ...s.admSel, status: st, events: [...s.admSel.events, { t: label, ts: Date.now() }] }
-    });
+    fetch('/api/orders/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: getInitData(), orderId: id, action: kind })
+    }).then(r => r.json()).then(d => {
+      if (!d || !d.ok) return;
+      this.loadAdminOrders();
+      const map = {
+        done: 'done', pending: 'pending', paid: 'processing', fulfill_failed: 'failed',
+        cancelled: 'cancelled', refunded: 'refund',
+      };
+      if (d.order) {
+        const o = d.order;
+        const row = {
+          id: o.id, user: o.user || ('id' + (o.userId || '')), pid: o.playerId, productId: o.productId,
+          amount: o.amount, buy: o.buy || 0, status: map[o.status] || o.status, ts: (o.createdAt || 0) * 1000
+        };
+        this.setState({
+          admSel: { ...row, events: [...(s.admSel.events || []), { t: label, ts: Date.now() }] }
+        });
+      } else {
+        this.setState({ admSel: null });
+      }
+    }).catch(() => {});
   }
   bumpM(id, d) {
     this.setState({
@@ -733,7 +757,7 @@ export class PrototypeLogic extends Logic {
       payProgressW: Math.min(100, s.payProgress) + '%',
       payPct: Math.round(Math.min(100, s.payProgress)) + '%',
       payErr: s.payErr || '', payHasErr: !!s.payErr,
-      reopenPay: () => { const tg = (window as any).Telegram && (window as any).Telegram.WebApp; if (s.payRedirect) { if (tg && tg.openLink) tg.openLink(s.payRedirect); else window.open(s.payRedirect, '_blank'); } },
+      reopenPay: () => { if (s.payRedirect) openPaymentUrl(s.payRedirect); },
       // status
       stages, success: s.success, notSuccess: !s.success, curOrderId: s.curOrderId || 'IZ-····',
       // orders
