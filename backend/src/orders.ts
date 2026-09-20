@@ -3,6 +3,7 @@ import {
   insertOrder,
   getOrder,
   updateOrderStatus,
+  updateOrderAdmin,
   listOrdersByUser,
   listAllOrders,
   listPaidOrdersWithFazer,
@@ -174,10 +175,11 @@ export async function adminOrderAction(
   }
 
   if (action === 'refund') {
-    if (o.status === 'refunded' || o.status === 'cancelled') return { ok: true };
-    updateOrderStatus.run({
+    if (o.admin_dismissed) return { ok: true };
+    updateOrderAdmin.run({
       id: orderId,
       status: 'refunded',
+      admin_dismissed: 1,
       fazer_id: o.fazer_id,
       provider_id: o.provider_id,
       updated_at: now(),
@@ -185,13 +187,14 @@ export async function adminOrderAction(
     return { ok: true };
   }
 
-  // resolve — закрыть инцидент: неоплаченный → cancelled, ошибка выдачи → done вручную
-  if (o.status === 'done' || o.status === 'cancelled') return { ok: true };
+  // resolve — закрыть инцидент в админке (скрывается из «Проблем» навсегда)
+  if (o.admin_dismissed) return { ok: true };
   const next =
     o.status === 'pending' ? 'cancelled' : o.status === 'fulfill_failed' || o.status === 'paid' ? 'done' : 'done';
-  updateOrderStatus.run({
+  updateOrderAdmin.run({
     id: orderId,
     status: next,
+    admin_dismissed: 1,
     fazer_id: o.fazer_id,
     provider_id: o.provider_id,
     updated_at: now(),
@@ -271,6 +274,7 @@ export function toAdminOrder(o: OrderRow) {
     ...toClientOrder(o),
     user: o.handle ?? (o.user_id ? 'id' + o.user_id : '—'),
     userId: o.user_id,
+    dismissed: !!(o.admin_dismissed ?? 0),
   };
 }
 
