@@ -11,6 +11,7 @@ import {
   type OrderRow,
 } from './db.js';
 import { getProduct, priceOf, discountFor } from './catalog.js';
+import { serviceFeeRub, totalWithFeeRub } from './fees.js';
 import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
 import { createFazerOrder, getFazerOrder, getRateRub, validatePlayerId } from './fazer.js';
 import { getProvider } from './payments.js';
@@ -24,6 +25,7 @@ export interface CreateOrderInput {
   playerId: string;
   method: string;
   promoCode: string;
+  quantity?: number;
 }
 
 export interface CreateOrderResult {
@@ -50,13 +52,15 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const cfg = getConfig();
   if (cfg.active[product.id] === false) return { ok: false, error: 'Товар недоступен' };
 
+  const qty = Math.min(99, Math.max(1, Math.floor(Number(input.quantity) || 1)));
   const rate = await getRateRub();
   const markup = markupOf(cfg, product.id, product.defaultMarkup);
-  const price = priceOf(product, markup, rate);
+  const unitPrice = priceOf(product, markup, rate);
   const promo = findPromo(cfg, input.promoCode);
-  const discount = discountFor(price, promo);
-  const amount = Math.max(1, price - discount);
-  const buy = Math.round(product.buyUsd * rate);
+  const discount = discountFor(unitPrice * qty, promo);
+  const subtotal = Math.max(1, unitPrice * qty - discount);
+  const amount = totalWithFeeRub(subtotal);
+  const buy = Math.round(product.buyUsd * rate) * qty;
 
   const id = newOrderId();
   const ts = now();
@@ -73,7 +77,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     const pay = await getProvider().createPayment({
       orderId: id,
       amountRub: amount,
-      description: `${product.name} — ${input.playerId}`,
+      description: `${qty > 1 ? qty + '× ' : ''}${product.name} — ${input.playerId}`,
       method,
     });
     redirect = pay.redirect;
@@ -100,6 +104,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     redirect,
     created_at: ts,
     updated_at: ts,
+    quantity: qty,
   });
 
   // Заглушка: авто-оплата через N мс для тестов сквозного сценария.
@@ -137,17 +142,31 @@ export async function fulfillOrder(orderId: string): Promise<void> {
     updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: null, provider_id: null, updated_at: now() });
     return;
   }
+  const qty = Math.max(1, Math.floor(Number(o.quantity) || 1));
   try {
-    const f = await createFazerOrder(product.channel, product.offerId, o.player_id, o.id);
-    if (f.status === 'done') {
-      updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
-      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен: ${product.name} зачислен на ID ${o.player_id}.`);
-    } else if (f.status === 'failed') {
-      updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+    let lastFazerId = '';
+    let allDone = true;
+    let anyFailed = false;
+    let anyPending = false;
+    for (let i = 0; i < qty; i++) {
+      const key = qty === 1 ? o.id : `${o.id}#${i + 1}`;
+      const f = await createFazerOrder(product.channel, product.offerId, o.player_id, key);
+      lastFazerId = f.fazerId;
+      if (f.status === 'failed') anyFailed = true;
+      else if (f.status !== 'done') {
+        anyPending = true;
+        allDone = false;
+      }
+    }
+    if (anyFailed) {
+      updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
       if (o.user_id) void notifyUser(o.user_id, `⚠️ Не удалось выдать заказ ${o.id}. Средства вернём, поддержка свяжется.`);
+    } else if (allDone && !anyPending) {
+      updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
+      const label = qty > 1 ? `${qty}× ${product.name}` : product.name;
+      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен: ${label} зачислен на ID ${o.player_id}.`);
     } else {
-      // pending/processing у поставщика — оставляем 'paid', дозабор при опросе.
-      updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
+      updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
     }
   } catch (e) {
     console.error('[fulfillOrder]', orderId, (e as Error).message);
@@ -265,10 +284,13 @@ export function toClientOrder(o: OrderRow) {
     productId: o.product_id,
     amount: o.amount,
     buy: o.buy,
+    quantity: o.quantity ?? 1,
     status: o.status,
     createdAt: o.created_at,
   };
 }
+
+export { serviceFeeRub, totalWithFeeRub };
 
 export function toAdminOrder(o: OrderRow) {
   return {

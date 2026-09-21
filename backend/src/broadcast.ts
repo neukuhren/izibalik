@@ -4,7 +4,15 @@ export interface BroadcastButton {
   text: string;
   url: string;
 }
-type BcSender = (userId: number, text: string, button: BroadcastButton | null) => Promise<void>;
+
+export interface BroadcastPayload {
+  text: string;
+  button: BroadcastButton | null;
+  /** Локальный путь к файлу изображения (после загрузки в админке). */
+  imagePath: string | null;
+}
+
+type BcSender = (userId: number, payload: BroadcastPayload) => Promise<void>;
 
 let sender: BcSender | null = null;
 export function setBroadcastSender(fn: BcSender): void {
@@ -39,25 +47,33 @@ export function broadcastStatus(): BcStatus {
   return status;
 }
 
-export function startBroadcast(text: string, audience: Audience, button: BroadcastButton | null): { ok: boolean; total: number; error?: string } {
+/** Пауза между получателями: запас под лимиты Telegram (фото — медленнее текста). */
+const BROADCAST_DELAY_MS = 150;
+
+export function startBroadcast(
+  text: string,
+  audience: Audience,
+  button: BroadcastButton | null,
+  imagePath: string | null,
+): { ok: boolean; total: number; error?: string } {
   if (status.running) return { ok: false, total: 0, error: 'Рассылка уже идёт' };
   if (!sender) return { ok: false, total: 0, error: 'Бот не запущен' };
   const ids = recipients(audience);
   status = { running: true, total: ids.length, sent: 0, failed: 0 };
-  void run(ids, text, button);
+  void run(ids, { text, button, imagePath });
   return { ok: true, total: ids.length };
 }
 
-async function run(ids: number[], text: string, button: BroadcastButton | null): Promise<void> {
+async function run(ids: number[], payload: BroadcastPayload): Promise<void> {
   const send = sender!;
   for (const id of ids) {
     try {
-      await send(id, text, button);
+      await send(id, payload);
       status.sent++;
     } catch {
       status.failed++;
     }
-    await new Promise((r) => setTimeout(r, 40)); // ~25 сообщений/сек
+    await new Promise((r) => setTimeout(r, BROADCAST_DELAY_MS));
   }
   status.running = false;
 }

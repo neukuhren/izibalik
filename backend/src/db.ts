@@ -54,6 +54,11 @@ try {
 } catch {
   /* колонка уже есть */
 }
+try {
+  db.exec(`ALTER TABLE orders ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1`);
+} catch {
+  /* колонка уже есть */
+}
 db.exec(`
 UPDATE orders SET admin_dismissed = 1
 WHERE admin_dismissed = 0 AND status IN ('cancelled', 'done', 'refunded');
@@ -77,6 +82,7 @@ export interface OrderRow {
   created_at: number;
   updated_at: number;
   admin_dismissed?: number;
+  quantity?: number;
 }
 
 export interface UserRow {
@@ -97,8 +103,8 @@ ON CONFLICT(id) DO UPDATE SET handle=@handle, name=@name, username=@username, la
 `);
 
 export const insertOrder = db.prepare(`
-INSERT INTO orders (id, user_id, handle, product_id, player_id, amount, buy, markup, promo, method, status, provider_id, fazer_id, redirect, created_at, updated_at)
-VALUES (@id, @user_id, @handle, @product_id, @player_id, @amount, @buy, @markup, @promo, @method, @status, @provider_id, @fazer_id, @redirect, @created_at, @updated_at)
+INSERT INTO orders (id, user_id, handle, product_id, player_id, amount, buy, markup, promo, method, status, provider_id, fazer_id, redirect, created_at, updated_at, quantity)
+VALUES (@id, @user_id, @handle, @product_id, @player_id, @amount, @buy, @markup, @promo, @method, @status, @provider_id, @fazer_id, @redirect, @created_at, @updated_at, @quantity)
 `);
 
 export const getOrder = db.prepare(`SELECT * FROM orders WHERE id = ?`);

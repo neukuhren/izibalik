@@ -187,6 +187,15 @@ export default function AppView({ v }: { v: Vals }) {
           {p.hasOld && <span style={{fontSize:'10px',color:'#8b90ab',textDecoration:'line-through'}}>{p.oldF}</span>}
           <span style={{fontFamily:'Orbitron,sans-serif',fontSize:'14.5px',fontWeight:'700',color:'#f2f4ff'}}>{p.priceF} ₽</span>
         </div>
+        {p.canQty ? (<>
+          <div onClick={(e:any)=>e.stopPropagation()} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'10px',marginTop:'2px'}}>
+            <div onClick={p.decQty} className="iziA98" style={{cursor:'pointer',width:'34px',height:'34px',borderRadius:'10px',border:'1px solid rgba(0,240,255,.25)',display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontSize:'18px',fontWeight:'700'}}>−</div>
+            <span style={{fontFamily:'Orbitron,sans-serif',fontSize:'15px',fontWeight:'700',minWidth:'28px',textAlign:'center'}}>{p.qty}</span>
+            <div onClick={p.incQty} className="iziA98" style={{cursor:'pointer',width:'34px',height:'34px',borderRadius:'10px',border:'1px solid rgba(0,240,255,.25)',display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontSize:'18px',fontWeight:'700'}}>+</div>
+          </div>
+        </>) : (<>
+          <div style={{marginTop:'4px',textAlign:'center',fontSize:'11px',fontWeight:'700',color:'#00f0ff',letterSpacing:'1px'}}>Купить</div>
+        </>)}
       </div>
     </Fragment>))}
   </div>
@@ -208,7 +217,7 @@ export default function AppView({ v }: { v: Vals }) {
     <div style={{width:'36px',height:'36px',flex:'none',borderRadius:'50%',background:'radial-gradient(circle at 35% 30%,#ffe98a,#f0b429 55%,#9c6b10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Orbitron,sans-serif',fontSize:'10px',fontWeight:'900',color:'#3d2b00'}}>UC</div>
     <div style={{flex:'1'}}>
       <div style={{fontFamily:'Orbitron,sans-serif',fontSize:'16px',fontWeight:'700'}}>{v.selName}</div>
-      <div style={{fontSize:'11px',color:'#8b90ab',marginTop:'2px'}}>{v.selPriceF} ₽ · зачисление ≈ 2 мин</div>
+      <div style={{fontSize:'11px',color:'#8b90ab',marginTop:'2px'}}>{v.selPriceF} ₽{v.selQty>1?` · ${v.selQty} шт.`:' · зачисление ≈ 2 мин'}</div>
     </div>
     <div onClick={v.goShop} style={{fontSize:'11.5px',color:'#00f0ff',cursor:'pointer',padding:'6px'}}>Изменить</div>
   </div>
@@ -252,10 +261,22 @@ export default function AppView({ v }: { v: Vals }) {
     </>)}
   </div>
 
+  {v.canOrderQty && (<>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'12px'}}>
+      <span style={{fontSize:'12px',color:'#8b90ab'}}>Количество</span>
+      <div onClick={v.decOrderQty} style={{cursor:'pointer',width:'36px',height:'36px',borderRadius:'10px',border:'1px solid rgba(0,240,255,.25)',display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontSize:'18px'}}>−</div>
+      <span style={{fontFamily:'Orbitron,sans-serif',fontSize:'16px',fontWeight:'700',minWidth:'24px',textAlign:'center'}}>{v.selQty}</span>
+      <div onClick={v.incOrderQty} style={{cursor:'pointer',width:'36px',height:'36px',borderRadius:'10px',border:'1px solid rgba(0,240,255,.25)',display:'flex',alignItems:'center',justifyContent:'center',color:'#00f0ff',fontSize:'18px'}}>+</div>
+      <span style={{fontSize:'11px',color:'#5a5f7d'}}>{v.selUnitF} ₽ / шт.</span>
+    </div>
+  </>)}
   <div style={{background:'rgba(19,21,40,.55)',border:'1px solid rgba(0,240,255,.13)',borderRadius:'16px',backdropFilter:'blur(10px)',padding:'16px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Тариф</span><span style={{color:'#e9eaf4',fontVariantNumeric:'tabular-nums'}}>{v.selPriceF} ₽</span></div>
     {v.hasDiscount && (<>
       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Скидка</span><span style={{color:'#d9ff00',fontVariantNumeric:'tabular-nums'}}>−{v.discountF} ₽</span></div>
+    </>)}
+    {v.hasFee && (<>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Комиссия сервиса ({v.feePct}%)</span><span style={{color:'#e9eaf4',fontVariantNumeric:'tabular-nums'}}>{v.feeF} ₽</span></div>
     </>)}
     <div style={{height:'1px',background:'linear-gradient(90deg,transparent,rgba(0,240,255,.3),transparent)'}}></div>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}><span style={{fontSize:'13px',fontWeight:'600'}}>К оплате</span><span style={{fontFamily:'Orbitron,sans-serif',fontSize:'22px',fontWeight:'700',color:'#00f0ff',textShadow:'0 0 12px rgba(0,240,255,.5)'}}>{v.totalF} ₽</span></div>
@@ -274,7 +295,7 @@ export default function AppView({ v }: { v: Vals }) {
   </div>
   <div onClick={v.pickSbp} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',padding:'15px 14px',borderRadius:'16px',background:'rgba(19,21,40,.55)',backdropFilter:'blur(10px)',border:`1px solid ${v.mSbpB}`,boxShadow:v.mSbpG}}>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="#00f0ff"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"></path></svg>
-    <div style={{flex:'1'}}><div style={{fontSize:'14px',fontWeight:'600'}}>СБП</div><div style={{fontSize:'11px',color:'#8b90ab'}}>Мгновенно, без комиссии</div></div>
+    <div style={{flex:'1'}}><div style={{fontSize:'14px',fontWeight:'600'}}>СБП</div><div style={{fontSize:'11px',color:'#8b90ab'}}>Мгновенно · QR-код</div></div>
     <div style={{width:'18px',height:'18px',borderRadius:'50%',border:`2px solid ${v.mSbpR}`,background:v.mSbpRF,boxShadow:v.mSbpRG}}></div>
   </div>
   <div onClick={v.pickCard} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:'12px',padding:'15px 14px',borderRadius:'16px',background:'rgba(19,21,40,.55)',backdropFilter:'blur(10px)',border:`1px solid ${v.mCardB}`,boxShadow:v.mCardG}}>
@@ -740,6 +761,19 @@ export default function AppView({ v }: { v: Vals }) {
     </div>
   </div>
   <textarea value={v.bcText} onChange={v.setBcText} placeholder="Текст рассылки…" rows={5} style={{boxSizing:'border-box',width:'100%',background:'rgba(0,240,255,.05)',border:'1px solid rgba(0,240,255,.16)',borderRadius:'12px',padding:'12px 14px',color:'#f2f4ff',fontSize:'14px',resize:'vertical',fontFamily:'inherit'}} />
+  <div>
+    <div style={{fontSize:'11px',letterSpacing:'1px',color:'#8b90ab',textTransform:'uppercase',marginBottom:'7px'}}>Изображение (до 10 МБ)</div>
+    <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+      <label style={{cursor:'pointer',padding:'9px 14px',borderRadius:'10px',fontSize:'12px',fontWeight:'600',background:'rgba(19,21,40,.6)',border:'1px solid rgba(0,240,255,.35)',color:'#00f0ff',opacity:v.bcUploading?0.6:1}}>
+        {v.bcUploading ? 'Загрузка…' : 'Выбрать файл'}
+        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={v.uploadBcImage} style={{display:'none'}} />
+      </label>
+      {v.bcHasImage && (<>
+        <span style={{fontSize:'12px',color:'#c7cae0',flex:'1',minWidth:'0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.bcImageName}</span>
+        <div onClick={v.clearBcImage} style={{cursor:'pointer',fontSize:'12px',color:'#ff2e7e'}}>Убрать</div>
+      </>)}
+    </div>
+  </div>
   <div style={{display:'flex',gap:'8px'}}>
     <input value={v.bcBtnText} onChange={v.setBcBtnText} placeholder="Кнопка (текст, опц.)" style={{boxSizing:'border-box',flex:'1',minWidth:'0',background:'rgba(19,21,40,.55)',border:'1px solid rgba(139,144,171,.25)',borderRadius:'10px',padding:'10px 12px',color:'#f2f4ff',fontSize:'12.5px'}} />
     <input value={v.bcBtnUrl} onChange={v.setBcBtnUrl} placeholder="ссылка кнопки" style={{boxSizing:'border-box',flex:'1',minWidth:'0',background:'rgba(19,21,40,.55)',border:'1px solid rgba(139,144,171,.25)',borderRadius:'10px',padding:'10px 12px',color:'#f2f4ff',fontSize:'12.5px'}} />

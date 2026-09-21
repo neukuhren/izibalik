@@ -1,8 +1,8 @@
-import { Bot, InlineKeyboard } from 'grammy';
+import { Bot, InlineKeyboard, InputFile } from 'grammy';
 import { env } from './env.js';
 import { upsertUser, now } from './db.js';
 import { setSender } from './notify.js';
-import { setBroadcastSender, type BroadcastButton } from './broadcast.js';
+import { setBroadcastSender } from './broadcast.js';
 
 let bot: Bot | null = null;
 
@@ -58,11 +58,18 @@ export async function startBot(): Promise<void> {
     await bot.api.sendMessage(userId, text);
   });
 
-  // Отправка рассылки (с опциональной inline-кнопкой).
-  setBroadcastSender(async (userId: number, text: string, button: BroadcastButton | null) => {
+  // Отправка рассылки (текст, опционально фото и inline-кнопка).
+  setBroadcastSender(async (userId: number, payload) => {
     if (!bot) return;
-    const kb = button ? new InlineKeyboard().url(button.text, button.url) : undefined;
-    await bot.api.sendMessage(userId, text, { reply_markup: kb });
+    const kb = payload.button ? new InlineKeyboard().url(payload.button.text, payload.button.url) : undefined;
+    if (payload.imagePath) {
+      await bot.api.sendPhoto(userId, new InputFile(payload.imagePath), {
+        caption: payload.text.slice(0, 1024),
+        reply_markup: kb,
+      });
+    } else {
+      await bot.api.sendMessage(userId, payload.text, { reply_markup: kb });
+    }
   });
 
   // Long polling (как в оригинале). Для webhook — заменить на bot.api.setWebhook + grammyWebhook.
