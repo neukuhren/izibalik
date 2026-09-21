@@ -23,9 +23,12 @@ install -D -m 644 deploy/nginx/izibalik.conf /etc/nginx/sites-available/izibalik
 ln -sf /etc/nginx/sites-available/izibalik /etc/nginx/sites-enabled/izibalik
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
-systemctl reload nginx
 
-if [[ ! -d /etc/letsencrypt/live/$DOMAIN ]]; then
+# Шаблон nginx в git — только HTTP. Если сертификат уже есть, certbot снова включает 443.
+SSL_DOMAIN="${IZIBALIK_SSL_DOMAIN:-izibalik.shop}"
+if [[ -d "/etc/letsencrypt/live/${SSL_DOMAIN}" ]]; then
+  certbot --nginx -d "${SSL_DOMAIN}" -d "www.${SSL_DOMAIN}" --non-interactive --redirect
+elif [[ ! -d /etc/letsencrypt/live/$DOMAIN ]]; then
   certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect
 fi
 
