@@ -30,10 +30,8 @@ async function req<T = any>(method: string, path: string, body?: unknown, idempo
   return data as T;
 }
 
-const RATE_TTL_MS = 60 * 60 * 1000;
-let cachedRate: { rub: number; at: number } | null = null;
-
-async function fetchRateRub(): Promise<number> {
+/** Курс USD→RUB с Fazer (без кэша — кэш в catalog-sync). */
+export async function fetchRateRub(): Promise<number> {
   try {
     const d = await req<{ rates?: { RUB?: number } }>('GET', '/steam-topup/rates');
     const rub = d?.rates?.RUB;
@@ -43,27 +41,7 @@ async function fetchRateRub(): Promise<number> {
   }
 }
 
-/** Курс USD→RUB с кэшем на 1 час (обновляется фоном и при истечении TTL). */
-export async function getRateRub(): Promise<number> {
-  const now = Date.now();
-  if (cachedRate && now - cachedRate.at < RATE_TTL_MS) return cachedRate.rub;
-  const rub = await fetchRateRub();
-  cachedRate = { rub, at: now };
-  return rub;
-}
-
-export function startRateRefresh(): void {
-  const tick = () => {
-    void fetchRateRub()
-      .then((rub) => {
-        cachedRate = { rub, at: Date.now() };
-        console.log(`[rate] USD/RUB обновлён: ${rub}`);
-      })
-      .catch(() => {});
-  };
-  tick();
-  setInterval(tick, RATE_TTL_MS);
-}
+export { getRateRub, startFazerPricingRefresh as startRateRefresh } from './catalog-sync.js';
 
 export async function getBalanceUsd(): Promise<number | null> {
   try {

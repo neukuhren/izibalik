@@ -10,7 +10,7 @@ import {
   now,
   type OrderRow,
 } from './db.js';
-import { getProduct, priceOf, discountFor } from './catalog.js';
+import { getProduct, priceOf, discountFor, buyRub } from './catalog.js';
 import { serviceFeeRub, totalWithFeeRub } from './fees.js';
 import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
 import { createFazerOrder, getFazerOrder, getRateRub, validatePlayerId } from './fazer.js';
@@ -60,7 +60,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const discount = discountFor(unitPrice * qty, promo);
   const subtotal = Math.max(1, unitPrice * qty - discount);
   const amount = totalWithFeeRub(subtotal);
-  const buy = Math.round(product.buyUsd * rate) * qty;
+  const buy = buyRub(product, rate) * qty;
 
   const id = newOrderId();
   const ts = now();

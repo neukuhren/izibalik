@@ -3,7 +3,7 @@ import { env, isAdmin } from './env.js';
 import { userFromInit, displayHandle } from './telegram.js';
 import { upsertUser, now, getOrder, getOrderByProviderId, type OrderRow } from './db.js';
 import { getConfig, saveConfig, type ShopConfig } from './config.js';
-import { catalogForClient } from './catalog.js';
+import { catalogForClient, catalogSyncMeta } from './catalog.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
 import { SERVICE_FEE_PCT } from './fees.js';
 import { saveBroadcastImage, broadcastImagePath } from './broadcast-media.js';
@@ -48,7 +48,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/api/catalog', async () => {
     const rate = await getRateRub();
-    return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate) };
+    return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate), ...catalogSyncMeta() };
   });
 
   // --- Регистрация пользователя (аудитория рассылки) ---

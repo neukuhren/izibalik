@@ -292,7 +292,10 @@ export class PrototypeLogic extends Logic {
     }).catch(() => this.setState({ topup: { ...this.state.topup, loading: false, error: 'Сеть недоступна' } }));
   }
   rateRub() { return this.state.supRate || 78.07; }
-  buyRubOf(p) { return Math.round(Number(p.buyUsd || 0) * this.rateRub()); }
+  buyRubOf(p) {
+    if (p.buy != null && Number.isFinite(Number(p.buy))) return Math.round(Number(p.buy));
+    return Math.round(Number(p.buyUsd || 0) * this.rateRub());
+  }
   priceOf(p) { return Math.round(this.buyRubOf(p) * (1 + p.markup / 100)); }
   feePct() { return this.state.feePct || SERVICE_FEE_PCT; }
   serviceFee(subtotal) { return subtotal > 0 ? Math.round(subtotal * (this.feePct() / 100)) : 0; }
@@ -337,11 +340,11 @@ export class PrototypeLogic extends Logic {
         feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
         products: this.state.products.map(p => {
           const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd) } : p;
+          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
         }),
         defaultProducts: this.defaultProducts.map(p => {
           const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd) } : p;
+          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
         }),
       });
     }).catch(() => {});
