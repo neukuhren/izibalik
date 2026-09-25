@@ -4,9 +4,15 @@ import { resolve } from 'node:path';
 import { env } from './env.js';
 import { registerRoutes } from './routes.js';
 import { startBot } from './bot.js';
+import { startRateRefresh } from './fazer.js';
 
 async function main(): Promise<void> {
-  const app = Fastify({ logger: { level: 'info' }, bodyLimit: 1_048_576 });
+  const app = Fastify({ logger: { level: 'info' }, bodyLimit: 12 * 1024 * 1024 });
+
+  const { default: multipart } = await import('@fastify/multipart');
+  await app.register(multipart, {
+    limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+  });
 
   await registerRoutes(app);
 
@@ -28,6 +34,7 @@ async function main(): Promise<void> {
     }
   }
 
+  startRateRefresh();
   await startBot();
 
   await app.listen({ port: env.port, host: env.host });

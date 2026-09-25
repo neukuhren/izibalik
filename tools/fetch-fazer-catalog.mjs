@@ -1,7 +1,8 @@
 // Сверка каталога/закупочных цен PUBG с FazerCards.
 // Запуск: FAZER_API_KEY=fc_... node tools/fetch-fazer-catalog.mjs
-// Печатает офферы всех PUBG-категорий + курс USD→RUB. Сравнить с RAW в
-// app/src/logic/prototypeLogic.ts и обновить buyUsd/курс при расхождении.
+// Печатает офферы всех PUBG-категорий + курс USD→RUB.
+// В проде buyUsd подтягивается автоматически (backend/src/catalog-sync.ts, раз в час).
+// Скрипт — для ручной сверки и обновления fallback в products.ts / prototypeLogic.ts.
 const KEY = process.env.FAZER_API_KEY;
 if (!KEY) { console.error('FAZER_API_KEY не задан'); process.exit(1); }
 

@@ -30,7 +30,8 @@ async function req<T = any>(method: string, path: string, body?: unknown, idempo
   return data as T;
 }
 
-export async function getRateRub(): Promise<number> {
+/** Курс USD→RUB с Fazer (без кэша — кэш в catalog-sync). */
+export async function fetchRateRub(): Promise<number> {
   try {
     const d = await req<{ rates?: { RUB?: number } }>('GET', '/steam-topup/rates');
     const rub = d?.rates?.RUB;
@@ -39,6 +40,8 @@ export async function getRateRub(): Promise<number> {
     return env.fallbackRate;
   }
 }
+
+export { getRateRub, startFazerPricingRefresh as startRateRefresh } from './catalog-sync.js';
 
 export async function getBalanceUsd(): Promise<number | null> {
   try {

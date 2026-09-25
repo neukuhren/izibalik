@@ -14,6 +14,7 @@ const ADMIN_IDS = [1239066805, 1606026306];
 const isAdminUser = () => { const u = getTgUser(); return !!u && ADMIN_IDS.includes(u.id); };
 
 const PIDS_KEY = 'izi_pids';
+const SERVICE_FEE_PCT = 8;
 const loadPids = () => {
   try { const v = JSON.parse(localStorage.getItem(PIDS_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; }
   catch (e) { return []; }
@@ -91,7 +92,9 @@ export class PrototypeLogic extends Logic {
       adminTab: 'dash', revPeriod: 'week', admSel: null, admSearch: '', admFilter: 'issues', admToast: '',
       promos: [],
       npCode: '', npKind: 'pct', npVal: '10', npLimit: '100', npErr: false,
-      bcText: '', bcAudience: 'all', bcBtnText: '', bcBtnUrl: '', bcCounts: null, bcStatus: null, bcErr: ''
+      bcText: '', bcAudience: 'all', bcBtnText: '', bcBtnUrl: '', bcCounts: null, bcStatus: null, bcErr: '',
+      bcImageId: '', bcImageName: '', bcUploading: false,
+      cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT
     };
   }
   componentDidMount() {
@@ -105,6 +108,7 @@ export class PrototypeLogic extends Logic {
       if (d && d.ok) this.setState({ supBalUsd: Number(d.balance_usd), supRate: Number(d.rate_rub) });
     }).catch(() => {});
     this.loadCatalog();
+    this.catalogInt = setInterval(() => this.loadCatalog(), 60 * 60 * 1000);
     // регистрация пользователя для аудитории рассылки (по подписанному initData)
     if (getInitData()) {
       fetch('/api/seen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) }).catch(() => {});
@@ -122,7 +126,7 @@ export class PrototypeLogic extends Logic {
       this.setState({ screen: 'payment' });
     }
   }
-  componentWillUnmount() { this.timers.forEach(clearTimeout); clearInterval(this.payInt); clearInterval(this.bootInt); clearInterval(this.orderInt); clearInterval(this.bcInt); }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); clearInterval(this.payInt); clearInterval(this.bootInt); clearInterval(this.orderInt); clearInterval(this.bcInt); clearInterval(this.catalogInt); }
   runBoot() {
     const lines = [[0, 'подключение к Telegram WebApp…'], [28, 'авторизация initData…'], [52, 'загрузка тарифов…'], [78, 'синхронизация заказов…'], [95, 'готово']];
     this.bootStart = Date.now();
@@ -193,12 +197,27 @@ export class PrototypeLogic extends Logic {
     if (s.bcStatus && s.bcStatus.running) return;
     this.setState({ bcErr: '' });
     const button = (s.bcBtnText && s.bcBtnUrl) ? { text: s.bcBtnText, url: s.bcBtnUrl } : null;
-    fetch('/api/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData(), text, audience: s.bcAudience, button }) })
+    const imageId = (s.bcImageId || '').trim() || null;
+    fetch('/api/broadcast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData(), text, audience: s.bcAudience, button, imageId }) })
       .then(r => r.json()).then(d => {
         if (d && d.ok) { this.setState({ bcStatus: { running: true, total: d.total, sent: 0, failed: 0 } }); this.pollBcast(); }
         else this.setState({ bcErr: (d && d.error) ? String(d.error) : 'Ошибка отправки' });
       }).catch(() => this.setState({ bcErr: 'Сеть недоступна' }));
   }
+  uploadBcImage(file) {
+    if (!file || !isAdminUser()) return;
+    if (file.size > 10 * 1024 * 1024) { this.setState({ bcErr: 'Максимум 10 МБ' }); return; }
+    this.setState({ bcUploading: true, bcErr: '' });
+    const fd = new FormData();
+    fd.append('initData', getInitData());
+    fd.append('image', file);
+    fetch('/api/broadcast/upload', { method: 'POST', body: fd })
+      .then(r => r.json()).then(d => {
+        if (d && d.ok) this.setState({ bcImageId: d.imageId, bcImageName: file.name || 'image', bcUploading: false });
+        else this.setState({ bcUploading: false, bcErr: (d && d.error) ? String(d.error) : 'Не удалось загрузить' });
+      }).catch(() => this.setState({ bcUploading: false, bcErr: 'Сеть недоступна' }));
+  }
+  clearBcImage() { this.setState({ bcImageId: '', bcImageName: '' }); }
   pollBcast() {
     clearInterval(this.bcInt);
     this.bcInt = setInterval(() => {
@@ -273,21 +292,59 @@ export class PrototypeLogic extends Logic {
     }).catch(() => this.setState({ topup: { ...this.state.topup, loading: false, error: 'Сеть недоступна' } }));
   }
   rateRub() { return this.state.supRate || 78.07; }
-  buyRubOf(p) { return Math.round(Number(p.buyUsd || 0) * this.rateRub()); }
+  buyRubOf(p) {
+    if (p.buy != null && Number.isFinite(Number(p.buy))) return Math.round(Number(p.buy));
+    return Math.round(Number(p.buyUsd || 0) * this.rateRub());
+  }
   priceOf(p) { return Math.round(this.buyRubOf(p) * (1 + p.markup / 100)); }
+  feePct() { return this.state.feePct || SERVICE_FEE_PCT; }
+  serviceFee(subtotal) { return subtotal > 0 ? Math.round(subtotal * (this.feePct() / 100)) : 0; }
+  totalWithFee(subtotal) { return Math.max(1, subtotal + this.serviceFee(subtotal)); }
+  cartQtyOf(id) { return Math.max(0, Math.floor(Number(this.state.cartQty[id]) || 0)); }
+  cartBump(id, delta) {
+    const next = Math.min(99, Math.max(0, this.cartQtyOf(id) + delta));
+    const cartQty = { ...this.state.cartQty };
+    if (next <= 0) delete cartQty[id];
+    else cartQty[id] = next;
+    this.setState({ cartQty });
+  }
+  cartSummary() {
+    let items = 0, rub = 0, uc = 0;
+    for (const [id, q] of Object.entries(this.state.cartQty || {})) {
+      const qty = Math.max(0, Math.floor(Number(q) || 0));
+      if (!qty) continue;
+      const p = this.state.products.find(x => x.id === id);
+      if (!p) continue;
+      items += qty;
+      rub += this.priceOf(p) * qty;
+      uc += (p.uc || 0) * qty;
+    }
+    return { items, rub, uc };
+  }
+  openCartCheckout() {
+    const entries = Object.entries(this.state.cartQty || {}).filter(([, q]) => Math.floor(Number(q) || 0) > 0);
+    if (!entries.length) return;
+    const [productId, q] = entries[0];
+    this.setState({
+      selProduct: productId,
+      orderQty: Math.min(99, Math.max(1, Math.floor(Number(q) || 1))),
+      screen: 'checkout', tab: 'shop', pidError: '', appliedPromo: null, promoState: 'idle', promo: ''
+    });
+  }
   loadCatalog() {
     fetch('/api/catalog').then(r => r.ok ? r.json() : null).then(d => {
       if (!d || !d.ok) return;
       const byId = new Map((d.products || []).map(x => [x.id, x]));
       this.setState({
         supRate: Number(d.rate_rub) || this.state.supRate,
+        feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
         products: this.state.products.map(p => {
           const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd) } : p;
+          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
         }),
         defaultProducts: this.defaultProducts.map(p => {
           const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd) } : p;
+          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
         }),
       });
     }).catch(() => {});
@@ -314,7 +371,8 @@ export class PrototypeLogic extends Logic {
     const a = this.state.appliedPromo;
     if (!a) return 0;
     const p = this.priceOf(this.prod(this.state.selProduct));
-    return a.kind === 'pct' ? Math.round(p * a.val / 100) : Math.min(a.val, p - 1);
+    const line = p * Math.max(1, this.state.orderQty || 1);
+    return a.kind === 'pct' ? Math.round(line * a.val / 100) : Math.min(a.val, line - 1);
   }
   goPayment() {
     if (!/^\d{8,12}$/.test(this.state.playerId)) {
@@ -332,7 +390,11 @@ export class PrototypeLogic extends Logic {
     this.setState({ screen: 'paywait', payProgress: 0, payErr: '', savedIds });
     fetch('/api/pay', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: getInitData(), productId: s.selProduct, playerId: s.playerId, method, promo: s.appliedPromo ? s.appliedPromo.code : '' })
+      body: JSON.stringify({
+        initData: getInitData(), productId: s.selProduct, playerId: s.playerId, method,
+        promo: s.appliedPromo ? s.appliedPromo.code : '',
+        quantity: Math.max(1, Math.min(99, Math.floor(Number(s.orderQty) || 1)))
+      })
     }).then(r => r.json()).then(d => {
       if (d && d.ok && d.redirect) {
         this.setState({ curOrderId: d.orderId, payRedirect: d.redirect });
@@ -483,13 +545,19 @@ export class PrototypeLogic extends Logic {
     });
     const view = p => {
       const price = this.priceOf(p);
+      const canQty = p.sub === 'uc' || p.sub === 'nc';
+      const qty = this.cartQtyOf(p.id);
+      const linePrice = qty > 0 ? price * qty : price;
       const isUc = p.uc > 0;
       const per = isUc ? price / p.uc : 0;
       return {
         ucF: String(p.uc),
         unit: p.unit || 'UC',
         name: p.name,
-        priceF: this.fmt(price), oldF: this.fmt(p.old) + ' ₽',
+        priceF: this.fmt(linePrice), unitPriceF: this.fmt(price), oldF: this.fmt(p.old) + ' ₽',
+        canQty, qty,
+        incQty: e => { e && e.stopPropagation && e.stopPropagation(); this.cartBump(p.id, 1); },
+        decQty: e => { e && e.stopPropagation && e.stopPropagation(); this.cartBump(p.id, -1); },
         saveF: this.fmt(p.old - price),
         perUc: isUc ? per.toFixed(2) : '',
         meterW: isUc ? Math.round((minPerBy[p.sub] || 1) / per * 100) + '%' : '0%',
@@ -505,7 +573,14 @@ export class PrototypeLogic extends Logic {
         bigGlow: p.sub === 'uc' ? '0 0 30px rgba(240,180,41,.4)' : '0 0 30px rgba(123,47,255,.4)',
         badge: p.badge, hasBadge: !!p.badge,
         badgeC: p.badge === 'ПОПУЛЯРНЫЙ' ? MG : (p.badge === 'MAX' ? '#b18cff' : AC),
-        select: () => this.setState({ selProduct: p.id, screen: 'checkout', tab: 'shop', pidError: '', appliedPromo: null, promoState: 'idle', promo: '' })
+        select: () => {
+          const q = canQty ? Math.max(1, this.cartQtyOf(p.id) || 1) : 1;
+          if (canQty && this.cartQtyOf(p.id) <= 0) this.cartBump(p.id, 1);
+          this.setState({
+            selProduct: p.id, orderQty: q, screen: 'checkout', tab: 'shop',
+            pidError: '', appliedPromo: null, promoState: 'idle', promo: ''
+          });
+        }
       };
     };
     // витрина в структуре RefCod: единая сетка карточек, без отдельного «хита»
@@ -521,14 +596,19 @@ export class PrototypeLogic extends Logic {
 
     // ---- checkout
     const sel = this.prod(s.selProduct);
-    const selPrice = this.priceOf(sel);
+    const selQty = Math.max(1, Math.min(99, Math.floor(Number(s.orderQty) || 1)));
+    const selUnit = this.priceOf(sel);
+    const selPrice = selUnit * selQty;
     const disc = this.discount();
-    const total = selPrice - disc;
+    const subtotal = selPrice - disc;
+    const fee = this.serviceFee(subtotal);
+    const total = this.totalWithFee(subtotal);
+    const cart = this.cartSummary();
     const ap = s.appliedPromo;
 
     // ---- stages
     const stages = [
-      { t: 'Оплачен', d: this.mLabel(s.payMethod) + ' · ' + this.fmt(total) + ' ₽', i: 0 },
+      { t: 'Оплачен', d: this.mLabel(s.payMethod) + ' · ' + this.fmt(total) + ' ₽' + (selQty > 1 ? ' · ' + selQty + ' шт.' : ''), i: 0 },
       { t: 'Передан поставщику', d: 'API поставщика · автоматически', i: 1 },
       { t: (sel.unit === 'NC' ? 'NC' : (sel.sub === 'uc' ? 'UC' : 'Товар')) + (sel.sub === 'uc' || sel.unit === 'NC' ? ' зачислены' : ' выдан'), d: 'Player ID ' + s.playerId, i: 2 }
     ].map((st, i) => {
@@ -660,6 +740,11 @@ export class PrototypeLogic extends Logic {
     // ---- main button
     let mbVisible = false, mbLabel = '', mbClick = () => {};
     if (s.screen === 'checkout') { mbVisible = true; mbLabel = 'К ОПЛАТЕ · ' + this.fmt(total) + ' ₽'; mbClick = () => this.goPayment(); }
+    else if (s.screen === 'shop' && cart.items > 0) {
+      mbVisible = true;
+      mbLabel = 'КОРЗИНА · ' + this.fmt(cart.rub) + ' ₽';
+      mbClick = () => this.openCartCheckout();
+    }
     else if (s.screen === 'payment') { mbVisible = true; mbLabel = 'ОПЛАТИТЬ ' + this.fmt(total) + ' ₽'; mbClick = () => this.startPay(); }
     else if (s.screen === 'status' && s.success) { mbVisible = true; mbLabel = 'НА ГЛАВНУЮ'; mbClick = () => this.setState({ screen: 'shop', tab: 'shop', stage: -1, success: false, appliedPromo: null, promo: '', promoState: 'idle' }); }
     const isClient = s.mode === 'client';
@@ -762,7 +847,15 @@ export class PrototypeLogic extends Logic {
       bootPct: Math.round(s.bootP || 0) + '%', bootLine: s.bootLine || '',
       skipBoot: () => this.skipBoot(),
       // checkout
-      selName: sel.name, selPriceF: this.fmt(selPrice),
+      selName: selQty > 1 ? selQty + '× ' + sel.name : sel.name,
+      selPriceF: this.fmt(selPrice), selQty, selUnitF: this.fmt(selUnit),
+      incOrderQty: () => this.setState({ orderQty: Math.min(99, selQty + 1) }),
+      decOrderQty: () => this.setState({ orderQty: Math.max(1, selQty - 1) }),
+      canOrderQty: sel.sub === 'uc' || sel.sub === 'nc',
+      subtotalF: this.fmt(subtotal), feeF: this.fmt(fee), feePct: this.feePct(),
+      hasFee: fee > 0,
+      cartItems: cart.items, cartUc: cart.uc, cartRubF: this.fmt(cart.rub), cartVisible: cart.items > 0,
+      openCartCheckout: () => this.openCartCheckout(),
       playerId: s.playerId, nickname: s.nickname, promo: s.promo,
       setPid: e => this.setState({ playerId: e.target.value.replace(/\D/g, '').slice(0, 12), pidError: '' }),
       setNick: e => this.setState({ nickname: e.target.value }),
@@ -838,6 +931,9 @@ export class PrototypeLogic extends Logic {
       bcSentF: s.bcStatus ? (s.bcStatus.sent + ' / ' + s.bcStatus.total) : '',
       bcFailed: s.bcStatus ? s.bcStatus.failed : 0,
       sendBroadcast: () => this.sendBroadcast(),
+      bcImageName: s.bcImageName, bcHasImage: !!s.bcImageId, bcUploading: s.bcUploading,
+      uploadBcImage: e => { const f = e.target.files && e.target.files[0]; if (f) this.uploadBcImage(f); e.target.value = ''; },
+      clearBcImage: () => this.clearBcImage(),
       perChips,
       revF: this.fmt(rev), ordCount: cnt, avgF: this.fmt(cnt ? rev / cnt : 0),
       marginF: rev ? (profit / rev * 100).toFixed(1) : '0',

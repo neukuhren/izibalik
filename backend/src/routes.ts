@@ -3,8 +3,10 @@ import { env, isAdmin } from './env.js';
 import { userFromInit, displayHandle } from './telegram.js';
 import { upsertUser, now, getOrder, getOrderByProviderId, type OrderRow } from './db.js';
 import { getConfig, saveConfig, type ShopConfig } from './config.js';
-import { catalogForClient } from './catalog.js';
+import { catalogForClient, catalogSyncMeta } from './catalog.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
+import { SERVICE_FEE_PCT } from './fees.js';
+import { saveBroadcastImage, broadcastImagePath } from './broadcast-media.js';
 import { verifyPlategaCallback, type PlategaCallbackBody } from './platega.js';
 import {
   createOrder,
@@ -46,7 +48,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/api/catalog', async () => {
     const rate = await getRateRub();
-    return { ok: true, rate_rub: rate, products: catalogForClient(rate) };
+    return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate), ...catalogSyncMeta() };
   });
 
   // --- Регистрация пользователя (аудитория рассылки) ---
@@ -111,6 +113,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       playerId?: string;
       method?: string;
       promo?: string;
+      quantity?: number;
     };
     const user = userFromInit(body.initData);
     if (!user) return reply.code(401).send({ ok: false, error: 'Требуется Telegram' });
@@ -131,6 +134,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       playerId: body.playerId,
       method: body.method ?? 'sbp',
       promoCode: body.promo ?? '',
+      quantity: body.quantity,
     });
     if (!res.ok) return reply.send({ ok: false, error: res.error });
     return { ok: true, orderId: res.orderId, redirect: res.redirect };
@@ -168,18 +172,45 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     return { ok: true, counts: audienceCounts() };
   });
 
+  // --- Рассылка: загрузка изображения (до 10 МБ) ---
+  app.post('/api/broadcast/upload', async (req, reply) => {
+    let initData = '';
+    let buf: Buffer | null = null;
+    let mime = '';
+    for await (const part of req.parts()) {
+      if (part.type === 'field' && part.fieldname === 'initData') initData = String(part.value);
+      if (part.type === 'file' && part.fieldname === 'image') {
+        mime = part.mimetype || '';
+        buf = await part.toBuffer();
+      }
+    }
+    const user = userFromInit(initData);
+    if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
+    if (!buf?.length) return reply.send({ ok: false, error: 'Файл не получен' });
+    try {
+      const { id } = saveBroadcastImage(buf, mime);
+      return { ok: true, imageId: id };
+    } catch (e) {
+      return reply.send({ ok: false, error: (e as Error).message || 'Не удалось сохранить' });
+    }
+  });
+
   // --- Рассылка: старт ---
   app.post('/api/broadcast', async (req, reply) => {
     const body = req.body as InitBody & {
       text?: string;
       audience?: Audience;
       button?: { text: string; url: string } | null;
+      imageId?: string | null;
     };
     const user = userFromInit(body.initData);
     if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
     const text = (body.text ?? '').trim();
     if (!text) return reply.send({ ok: false, error: 'Пустой текст' });
-    const res = startBroadcast(text, body.audience ?? 'all', body.button ?? null);
+    const imageId = (body.imageId ?? '').trim();
+    const imagePath = imageId ? broadcastImagePath(imageId) : null;
+    if (imageId && !imagePath) return reply.send({ ok: false, error: 'Изображение не найдено' });
+    const res = startBroadcast(text, body.audience ?? 'all', body.button ?? null, imagePath);
     if (!res.ok) return reply.send({ ok: false, error: res.error });
     return { ok: true, total: res.total };
   });
