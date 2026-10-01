@@ -18,7 +18,7 @@ function parseUsd(v: unknown): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/** Курс + price_usd всех офферов Fazer (по каналам каталога). */
+/** Курс + price_usd всех офферов Fazer (по каналам каталога). Принудительное обновление — без ожидания TTL. */
 export async function refreshFazerPricing(): Promise<void> {
   const rateRub = await fetchRateRub();
   const buyUsdById = new Map<string, number>();

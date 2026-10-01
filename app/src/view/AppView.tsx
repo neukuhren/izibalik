@@ -664,6 +664,15 @@ export default function AppView({ v }: { v: Vals }) {
 {/* ADMIN PRODUCTS */}
 {v.admProd && (<>
 <div data-screen-label="Админ · Тарифы" style={{padding:'8px 16px 24px',display:'flex',flexDirection:'column',gap:'10px'}}>
+  <div style={{background:'rgba(0,240,255,.06)',border:'1px solid rgba(0,240,255,.22)',borderRadius:'12px',padding:'10px 12px',display:'flex',flexDirection:'column',gap:'6px'}}>
+    <div style={{fontSize:'10.5px',color:'#8b90ab',lineHeight:'1.45'}}>
+      Закуп: <span style={{color:'#c7cae0'}}>round(price_usd × курс)</span> — данные Fazer <span style={{fontFamily:'ui-monospace,Menlo,monospace'}}>/topups/offers</span> + <span style={{fontFamily:'ui-monospace,Menlo,monospace'}}>/steam-topup/rates</span>
+    </div>
+    <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+      <span style={{fontSize:'10px',color:'#5a5f7d'}}>курс {v.catalogRateF} ₽/$ · {v.catalogOffersF} · обновлено {v.catalogSyncedF}</span>
+      <div onClick={v.catalogRefreshing ? undefined : v.refreshCatalog} className="iziA95" style={{cursor:v.catalogRefreshing?'default':'pointer',opacity:v.catalogRefreshing?0.6:1,flex:'none',padding:'5px 10px',borderRadius:'8px',border:'1px solid rgba(0,240,255,.35)',color:'#00f0ff',fontSize:'10px',fontWeight:'700'}}>{v.catalogRefreshing ? '…' : 'Обновить с Fazer'}</div>
+    </div>
+  </div>
   <div style={{fontSize:'11px',color:'#5a5f7d',lineHeight:'1.5'}}>Наценка меняется степпером — итоговая цена пересчитывается сразу и обновляет витрину</div>
 
   {/* общая наценка на все товары */}
@@ -693,8 +702,8 @@ export default function AppView({ v }: { v: Vals }) {
           <div style={{position:'absolute',top:'2px',left:p.knobL,width:'16px',height:'16px',borderRadius:'50%',background:'#e9eaf4',transition:'left .2s',boxShadow:p.knobG}}></div>
         </div>
       </div>
-      <div style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'11px',color:'#8b90ab'}}>
-        <span style={{fontVariantNumeric:'tabular-nums'}} title="Закуп у Fazer × курс USD">закуп {p.buyF} ₽</span>
+      <div style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'11px',color:'#8b90ab',flexWrap:'wrap'}}>
+        <span style={{fontVariantNumeric:'tabular-nums',fontFamily:'ui-monospace,Menlo,monospace',fontSize:'10px'}} title="round(price_usd × rate_rub)">${p.buyUsdF} × {p.rateF} → {p.buyF} ₽</span>
         <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(123,47,255,.1)',border:'1px solid rgba(123,47,255,.35)',borderRadius:'8px',padding:'3px 4px'}}>
           <div onClick={p.dec} style={{cursor:'pointer',width:'22px',height:'22px',display:'flex',alignItems:'center',justifyContent:'center',color:'#b18cff',fontSize:'15px',fontWeight:'700'}}>−</div>
           <span style={{fontFamily:'ui-monospace,Menlo,monospace',fontSize:'11.5px',color:'#d4c2ff',minWidth:'32px',textAlign:'center'}}>{p.markup}%</span>

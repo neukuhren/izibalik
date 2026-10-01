@@ -94,7 +94,9 @@ export class PrototypeLogic extends Logic {
       npCode: '', npKind: 'pct', npVal: '10', npLimit: '100', npErr: false,
       bcText: '', bcAudience: 'all', bcBtnText: '', bcBtnUrl: '', bcCounts: null, bcStatus: null, bcErr: '',
       bcImageId: '', bcImageName: '', bcUploading: false,
-      cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT
+      cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT,
+      catalogSyncedAt: null, catalogOffersSynced: 0, catalogOffersTotal: 0,
+      catalogRefreshing: false
     };
   }
   componentDidMount() {
@@ -331,13 +333,16 @@ export class PrototypeLogic extends Logic {
       screen: 'checkout', tab: 'shop', pidError: '', appliedPromo: null, promoState: 'idle', promo: ''
     });
   }
-  loadCatalog() {
-    fetch('/api/catalog').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d || !d.ok) return;
-      const byId = new Map((d.products || []).map(x => [x.id, x]));
-      this.setState({
-        supRate: Number(d.rate_rub) || this.state.supRate,
-        feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
+  applyCatalogPayload(d) {
+    if (!d || !d.ok) return;
+    const byId = new Map((d.products || []).map(x => [x.id, x]));
+    this.setState({
+      supRate: Number(d.rate_rub) || this.state.supRate,
+      feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
+      catalogSyncedAt: d.catalog_synced_at != null ? d.catalog_synced_at : this.state.catalogSyncedAt,
+      catalogOffersSynced: d.offers_synced != null ? Number(d.offers_synced) : this.state.catalogOffersSynced,
+      catalogOffersTotal: d.offers_total != null ? Number(d.offers_total) : this.state.catalogOffersTotal,
+      catalogRefreshing: false,
         products: this.state.products.map(p => {
           const c = byId.get(p.id);
           return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
@@ -346,8 +351,17 @@ export class PrototypeLogic extends Logic {
           const c = byId.get(p.id);
           return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
         }),
-      });
-    }).catch(() => {});
+    });
+  }
+  loadCatalog(forceRefresh = false) {
+    if (forceRefresh && isAdminUser()) this.setState({ catalogRefreshing: true });
+    const url = forceRefresh && isAdminUser() ? '/api/admin/refresh-catalog' : '/api/catalog';
+    const opts = forceRefresh && isAdminUser()
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) }
+      : undefined;
+    fetch(url, opts).then(r => r.ok ? r.json() : null).then(d => this.applyCatalogPayload(d)).catch(() => {
+      if (forceRefresh) this.setState({ catalogRefreshing: false });
+    });
   }
   prod(id) { return this.state.products.find(p => p.id === id) || this.state.products[1]; }
   fmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
@@ -710,7 +724,10 @@ export class PrototypeLogic extends Logic {
     const prodRows = s.products.map(p => {
       const hot = p.badge === 'ПОПУЛЯРНЫЙ';
       return {
-        name: p.name, buyF: this.fmt(this.buyRubOf(p)), markup: p.markup, priceF: this.fmt(this.priceOf(p)),
+        name: p.name, buyF: this.fmt(this.buyRubOf(p)),
+        buyUsdF: Number(p.buyUsd || 0).toFixed(4),
+        rateF: (s.supRate || 0).toFixed(2),
+        markup: p.markup, priceF: this.fmt(this.priceOf(p)),
         catL: ({ uc: 'UC', mythic: 'КРИСТ', prime: 'ПРАЙМ', other: 'ПРОЧЕЕ', nc: 'NC' })[p.sub] || 'UC',
         badge: p.badge, hasBadge: !!p.badge, badgeC: hot ? MG : (p.badge === 'КОМБО' ? '#b18cff' : AC),
         rowOp: p.active ? 1 : 0.45,
@@ -909,7 +926,7 @@ export class PrototypeLogic extends Logic {
       admProd: s.adminTab === 'products', admPromo: s.adminTab === 'promos', admBcast: s.adminTab === 'broadcast',
       aDash: () => this.setState({ adminTab: 'dash' }),
       aOrd: () => { this.setState({ adminTab: 'orders' }); this.loadAdminOrders(); },
-      aProd: () => this.setState({ adminTab: 'products' }),
+      aProd: () => { this.setState({ adminTab: 'products' }); this.loadCatalog(true); },
       aPromo: () => this.setState({ adminTab: 'promos' }),
       aBcast: () => { this.setState({ adminTab: 'broadcast' }); this.loadAudiences(); },
       cDash: aC('dash'), cAOrd: aC('orders'), cProd: aC('products'), cPromo: aC('promos'), cBcast: aC('broadcast'),
@@ -959,6 +976,11 @@ export class PrototypeLogic extends Logic {
       actRefund: () => this.admAct('refund'),
       actResolve: () => this.admAct('resolve'),
       // products / promos
+      catalogSyncedF: s.catalogSyncedAt ? this.fmtTs(s.catalogSyncedAt * 1000) : 'ещё не синхронизировано',
+      catalogOffersF: s.catalogOffersTotal ? `${s.catalogOffersSynced}/${s.catalogOffersTotal} офферов` : '',
+      catalogRateF: (s.supRate || 0).toFixed(5),
+      catalogRefreshing: !!s.catalogRefreshing,
+      refreshCatalog: () => this.loadCatalog(true),
       prodRows, promoRows,
       // общая наценка на все товары (через this.state — замыкание на s отдаёт устаревший снапшот)
       bulkM: s.bulkMarkup,

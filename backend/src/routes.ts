@@ -6,6 +6,7 @@ import { userFromInit, displayHandle } from './telegram.js';
 import { upsertUser, now, getOrder, getOrderByProviderId, type OrderRow } from './db.js';
 import { getConfig, saveConfig, type ShopConfig } from './config.js';
 import { catalogForClient, catalogSyncMeta } from './catalog.js';
+import { refreshFazerPricing } from './catalog-sync.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
 import { SERVICE_FEE_PCT } from './fees.js';
 import { saveBroadcastImage, broadcastImagePath } from './broadcast-media.js';
@@ -52,6 +53,21 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/catalog', async () => {
     const rate = await getRateRub();
     return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate), ...catalogSyncMeta() };
+  });
+
+  /** Принудительно: offers + курс с Fazer, затем актуальный каталог (только админ). */
+  app.post('/api/admin/refresh-catalog', async (req, reply) => {
+    const user = userFromInit((req.body as InitBody).initData);
+    if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
+    await refreshFazerPricing();
+    const rate = await getRateRub();
+    return {
+      ok: true,
+      rate_rub: rate,
+      fee_pct: SERVICE_FEE_PCT,
+      products: catalogForClient(rate),
+      ...catalogSyncMeta(),
+    };
   });
 
   /** Последний снимок с сервера (генерируется job:pricing-snapshot при деплое). */
