@@ -19,6 +19,11 @@ git pull --ff-only origin "$BRANCH"
 chmod +x deploy/bootstrap-project.sh deploy/server-setup.sh
 ./deploy/bootstrap-project.sh
 
+# Снимок цен Fazer для сверки с поддержкой (нужен FAZER_API_KEY в backend/.env)
+if [[ -f backend/.env ]] && grep -q '^FAZER_API_KEY=.\+' backend/.env 2>/dev/null; then
+  (cd backend && npm run job:pricing-snapshot) || echo "WARN: pricing-snapshot не создан"
+fi
+
 install -D -m 644 deploy/nginx/izibalik.conf /etc/nginx/sites-available/izibalik
 ln -sf /etc/nginx/sites-available/izibalik /etc/nginx/sites-enabled/izibalik
 rm -f /etc/nginx/sites-enabled/default

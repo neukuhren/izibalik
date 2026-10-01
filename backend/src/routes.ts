@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { env, isAdmin } from './env.js';
 import { userFromInit, displayHandle } from './telegram.js';
@@ -21,6 +23,7 @@ import {
   toAdminOrder,
 } from './orders.js';
 import { audienceCounts, startBroadcast, broadcastStatus, type Audience } from './broadcast.js';
+import { buildPricingSnapshot } from './pricing-snapshot.js';
 
 interface InitBody {
   initData?: string;
@@ -49,6 +52,26 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/catalog', async () => {
     const rate = await getRateRub();
     return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate), ...catalogSyncMeta() };
+  });
+
+  /** Последний снимок с сервера (генерируется job:pricing-snapshot при деплое). */
+  app.get('/api/pricing-snapshot', async (_req, reply) => {
+    const p = resolve(process.cwd(), 'data/pricing-snapshot.json');
+    if (!existsSync(p)) return reply.send({ ok: false, error: 'snapshot not generated' });
+    try {
+      const snapshot = JSON.parse(readFileSync(p, 'utf8'));
+      return { ok: true, snapshot };
+    } catch {
+      return reply.send({ ok: false, error: 'snapshot corrupt' });
+    }
+  });
+
+  /** Снимок цен для сверки с Fazer (только админ, живой offers+rates). */
+  app.post('/api/admin/pricing-snapshot', async (req, reply) => {
+    const user = userFromInit((req.body as InitBody).initData);
+    if (!isAdmin(user?.id)) return reply.code(403).send({ ok: false, error: 'forbidden' });
+    const snap = await buildPricingSnapshot(true);
+    return { ok: true, snapshot: snap };
   });
 
   // --- Регистрация пользователя (аудитория рассылки) ---

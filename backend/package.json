@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "job:refresh-paid": "node dist/jobs/refresh-paid-orders.js",
+    "job:pricing-snapshot": "node dist/jobs/pricing-snapshot.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
