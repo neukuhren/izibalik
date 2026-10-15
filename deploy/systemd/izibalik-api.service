@@ -1,6 +1,6 @@
 [Unit]
 Description=Izibalik — API Fastify + Telegram-бот
-After=network-online.target nginx.service
+After=network.target nginx.service
 Wants=nginx.service
 Documentation=file:/opt/projects/izibalik/backend/README.md
 

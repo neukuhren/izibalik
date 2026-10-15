@@ -14,6 +14,9 @@ install -m 644 /opt/projects/izibalik/deploy/systemd/izibalik-refresh-orders.tim
 systemctl daemon-reload
 systemctl enable izibalik-build.service izibalik-web.service izibalik-api.service izibalik-refresh-orders.timer
 systemctl start izibalik-refresh-orders.timer
-systemctl restart izibalik-build.service
-systemctl restart izibalik-web.service
-systemctl restart izibalik-api.service
+# Полная пересборка только по явному флагу (иначе reboot/deploy зависают на npm ci).
+if [[ "${IZIBALIK_FORCE_BUILD:-0}" == "1" ]]; then
+  systemctl restart izibalik-build.service
+fi
+systemctl try-restart izibalik-api.service || systemctl start izibalik-api.service
+systemctl try-restart izibalik-web.service || true

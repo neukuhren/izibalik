@@ -1,6 +1,6 @@
 [Unit]
 Description=Izibalik — статический сервер Mini App (serve)
-After=network-online.target izibalik-build.service
+After=network.target izibalik-build.service
 Requires=izibalik-build.service
 Documentation=file:/opt/projects/izibalik/README.md
 
