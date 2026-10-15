@@ -1,7 +1,8 @@
 [Unit]
 Description=Izibalik — API Fastify + Telegram-бот
-After=network-online.target izibalik-build.service
-Requires=izibalik-build.service
+After=network-online.target izibalik-build.service nginx.service
+Wants=izibalik-build.service nginx.service
+ConditionPathExists=/opt/projects/izibalik/backend/dist/index.js
 Documentation=file:/opt/projects/izibalik/backend/README.md
 
 [Service]

@@ -16,8 +16,9 @@ git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-chmod +x deploy/bootstrap-project.sh deploy/server-setup.sh
+chmod +x deploy/bootstrap-project.sh deploy/server-setup.sh deploy/recover-izibalik.sh deploy/install-systemd.sh
 ./deploy/bootstrap-project.sh
+./deploy/install-systemd.sh
 
 # Снимок цен Fazer для сверки с поддержкой (нужен FAZER_API_KEY в backend/.env)
 if [[ -f backend/.env ]] && grep -q '^FAZER_API_KEY=.\+' backend/.env 2>/dev/null; then
@@ -37,6 +38,5 @@ elif [[ ! -d /etc/letsencrypt/live/$DOMAIN ]]; then
   certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect || true
 fi
 
-systemctl reload nginx
-systemctl restart izibalik-api || true
+./deploy/recover-izibalik.sh
 echo "Деплой завершён: https://${SSL_DOMAIN}/"
