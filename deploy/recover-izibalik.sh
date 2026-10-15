@@ -12,7 +12,10 @@ systemctl reset-failed izibalik-build.service izibalik-api.service 2>/dev/null |
 systemctl enable nginx izibalik-build.service izibalik-api.service
 
 systemctl start nginx
-systemctl start izibalik-build.service || true
+
+if [[ ! -f "${PROJECT_DIR}/backend/dist/index.js" ]]; then
+  systemctl start izibalik-build.service
+fi
 systemctl start izibalik-api.service
 
 SSL_DOMAIN="${IZIBALIK_SSL_DOMAIN:-izibalik.shop}"
