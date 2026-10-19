@@ -6,6 +6,68 @@ export interface LavatopCreateResult {
   redirect: string;
 }
 
+export function lavaBusinessConfigured(): boolean {
+  return Boolean(env.lavaShopId && env.lavaSecretKey);
+}
+
+function lavaBusinessSign(rawBody: string): string {
+  return createHmac('sha256', env.lavaSecretKey).update(rawBody).digest('hex');
+}
+
+async function lavaBusinessPost(path: string, params: Record<string, unknown>): Promise<any> {
+  const body = JSON.stringify(params);
+  const r = await fetch(`${env.lavaApiBase}${path}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Signature: lavaBusinessSign(body),
+    },
+    body,
+    signal: AbortSignal.timeout(25_000),
+  });
+  const data = await parseJson(r);
+  if (!r.ok && !data?.status_check) {
+    const msg = data?.error || data?.message || `HTTP ${r.status}`;
+    throw new Error(String(msg));
+  }
+  return data;
+}
+
+/** Счёт LAVA Business: POST /business/invoice/create */
+export async function createLavaBusinessInvoice(
+  orderId: string,
+  amountRub: number,
+  description: string,
+): Promise<LavatopCreateResult> {
+  if (!lavaBusinessConfigured()) throw new Error('LAVA Business не настроена (LAVA_SHOP_ID, LAVA_SECRET_KEY)');
+
+  const hookUrl = `${env.publicUrl}/api/webhooks/lavatop`;
+  const successUrl = `${env.publicUrl}/?order=${encodeURIComponent(orderId)}&paid=1`;
+  const failUrl = `${env.publicUrl}/?order=${encodeURIComponent(orderId)}&paid=0`;
+
+  const params: Record<string, unknown> = {
+    sum: amountRub,
+    orderId,
+    shopId: env.lavaShopId,
+    hookUrl,
+    successUrl,
+    failUrl,
+    comment: description.slice(0, 255),
+  };
+
+  const r = await lavaBusinessPost('/business/invoice/create', params);
+  const data = r.data;
+  if (!r.status_check) {
+    throw new Error(String(r.error || 'LAVA: ошибка создания счёта'));
+  }
+  const invoice = data as Record<string, unknown> | undefined;
+  const redirect = String(invoice?.url || invoice?.URL || invoice?.payment_url || invoice?.paymentUrl || '');
+  const paymentNo = String(invoice?.id || invoice?.invoice_id || invoice?.invoiceId || '');
+  if (!redirect) throw new Error('LAVA не вернула ссылку на оплату');
+  return { paymentNo, redirect };
+}
+
 function apiKeyHeader(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
@@ -29,7 +91,8 @@ export async function createLavatopPayment(
   amountRub: number,
   description: string,
 ): Promise<LavatopCreateResult> {
-  if (!env.lavatopApiKey) throw new Error('Lava Top не настроена (LAVATOP_API_KEY)');
+  if (lavaBusinessConfigured()) return createLavaBusinessInvoice(orderId, amountRub, description);
+  if (!env.lavatopApiKey) throw new Error('Lava Top не настроена (LAVATOP_API_KEY или LAVA_SHOP_ID)');
 
   const successUrl = `${env.publicUrl}/?order=${encodeURIComponent(orderId)}&paid=1`;
   const cancelUrl = `${env.publicUrl}/?order=${encodeURIComponent(orderId)}&paid=0`;
@@ -95,6 +158,49 @@ export function verifyLavatopWebhookApiKey(reqHeaders: Record<string, string | s
   if (!expected) return true;
   const got = headerOne(reqHeaders['x-api-key']) || headerOne(reqHeaders['X-Api-Key']);
   return got === expected;
+}
+
+function signaturesMatch(got: string, expected: string): boolean {
+  const a = got.trim().toLowerCase();
+  const b = expected.trim().toLowerCase();
+  if (a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
+  } catch {
+    return a === b;
+  }
+}
+
+/** LAVA Business: HMAC-SHA256(raw JSON body, дополнительный ключ). Заголовок Signature или Authorization. */
+export function verifyLavaBusinessWebhookSignature(
+  rawBody: string,
+  reqHeaders: Record<string, string | string[] | undefined>,
+): boolean {
+  const secret = env.lavaWebhookSecret;
+  if (!secret) return true;
+  const sig =
+    headerOne(reqHeaders.signature) ||
+    headerOne(reqHeaders.Signature) ||
+    headerOne(reqHeaders.authorization) ||
+    headerOne(reqHeaders.Authorization);
+  if (!sig) return false;
+  const direct = createHmac('sha256', secret).update(rawBody).digest('hex');
+  if (signaturesMatch(sig, direct)) return true;
+  try {
+    const sorted = sortKeysDeep(JSON.parse(rawBody) as Record<string, unknown>);
+    const legacy = createHmac('sha256', secret).update(JSON.stringify(sorted)).digest('hex');
+    return signaturesMatch(sig, legacy);
+  } catch {
+    return false;
+  }
+}
+
+function sortKeysDeep(v: unknown): unknown {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) return v;
+  const obj = v as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of Object.keys(obj).sort()) out[k] = sortKeysDeep(obj[k]);
+  return out;
 }
 
 /** PayCore payment.paid: HMAC-SHA256 по сырому телу. */
@@ -165,6 +271,22 @@ export function parseLavatopPaidEvent(body: LavatopWebhookBody): LavatopPaidEven
       orderId: String(body.merchant_order_no),
       amountRub: body.amount != null ? Math.round(Number(body.amount)) : undefined,
       providerId: String(body.payment_no || ''),
+    };
+  }
+
+  const lavaOrderId = String(body.orderId || body.order_id || '').trim();
+  const lavaStatus = String(body.status || '').toLowerCase();
+  if (lavaOrderId && (lavaStatus === 'success' || lavaStatus === 'paid')) {
+    const amt =
+      body.amount != null
+        ? Math.round(Number(body.amount))
+        : body.sum != null
+          ? Math.round(Number(body.sum))
+          : undefined;
+    return {
+      orderId: lavaOrderId,
+      amountRub: amt,
+      providerId: String(body.invoice_id || body.invoiceId || body.id || ''),
     };
   }
 

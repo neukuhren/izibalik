@@ -54,12 +54,19 @@ export const env = {
 
   lavatopApiKey: str('LAVATOP_API_KEY'),
   lavatopInitUrl: str('LAVATOP_INIT_URL', 'https://api.payuc.io/billing-api/init'),
-  lavatopWebhookIps: str('LAVATOP_WEBHOOK_IPS', '87.232.67.91')
+  /** Пусто = не фильтровать по IP (режим LAVA Business). Для PayUC: 87.232.67.91 */
+  lavatopWebhookIps: str('LAVATOP_WEBHOOK_IPS', '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
   lavatopWebhookApiKey: str('LAVATOP_WEBHOOK_API_KEY'),
   lavatopCallbackSecret: str('LAVATOP_CALLBACK_SECRET'),
+
+  /** LAVA Business (business.lava.ru): api.lava.ru/business/invoice/create */
+  lavaShopId: str('LAVA_SHOP_ID'),
+  lavaSecretKey: str('LAVA_SECRET_KEY'),
+  lavaWebhookSecret: str('LAVA_WEBHOOK_SECRET'),
+  lavaApiBase: str('LAVA_API_BASE', 'https://api.lava.ru'),
 
   dbPath: str('DB_PATH', './data/izibalik.sqlite'),
 };
