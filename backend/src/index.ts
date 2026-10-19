@@ -7,7 +7,7 @@ import { startBot } from './bot.js';
 import { startRateRefresh } from './fazer.js';
 
 async function main(): Promise<void> {
-  const app = Fastify({ logger: { level: 'info' }, bodyLimit: 12 * 1024 * 1024 });
+  const app = Fastify({ logger: { level: 'info' }, bodyLimit: 12 * 1024 * 1024, trustProxy: true });
 
   const { default: multipart } = await import('@fastify/multipart');
   await app.register(multipart, {

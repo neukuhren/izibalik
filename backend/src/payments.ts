@@ -1,5 +1,6 @@
 import { env } from './env.js';
 import { createPlategaPayment } from './platega.js';
+import { createLavatopPayment } from './lavatop.js';
 
 export interface PaymentRequest {
   orderId: string;
@@ -34,12 +35,23 @@ class PlategaProvider implements PaymentProvider {
   }
 }
 
+class LavatopProvider implements PaymentProvider {
+  readonly name = 'lavatop';
+  async createPayment(req: PaymentRequest): Promise<PaymentResult> {
+    const res = await createLavatopPayment(req.orderId, req.amountRub, req.description);
+    return { redirect: res.redirect, providerId: res.paymentNo || undefined };
+  }
+}
+
 let provider: PaymentProvider | null = null;
 export function getProvider(): PaymentProvider {
   if (provider) return provider;
   switch (env.paymentProvider) {
     case 'platega':
       provider = new PlategaProvider();
+      break;
+    case 'lavatop':
+      provider = new LavatopProvider();
       break;
     default:
       provider = new StubProvider();

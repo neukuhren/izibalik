@@ -10,7 +10,7 @@ Node 22+ (используется встроенный `node:sqlite`, без н
 - Гейт админки по списку Telegram ID (`ADMIN_IDS`).
 - Выдача заказов через FazerCards (`/topups/order`, идемпотентность по `orderId`).
 - Telegram-бот (`grammy`, long polling): `/start` → кнопка запуска Mini App, уведомления о заказах, рассылки.
-- Платёжка вынесена в адаптер (`src/payments.ts`). Сейчас активна **заглушка** — подключите провайдера позже.
+- Платёжка вынесена в адаптер (`src/payments.ts`): **Lava Top / PayUC** (`lavatop`), Platega (`platega`) или заглушка (`stub`).
 
 ## Быстрый старт
 
@@ -34,7 +34,10 @@ npm run build && npm start
 | `ADMIN_IDS` | Telegram ID админов через запятую |
 | `FAZER_API_KEY` | ключ FazerCards |
 | `PUBLIC_URL` | публичный URL бэкенда (redirect/webhook оплаты) |
-| `PAYMENT_PROVIDER` | `stub` (заглушка) / место для реального провайдера |
+| `PAYMENT_PROVIDER` | `lavatop` / `platega` / `stub` |
+| `LAVATOP_API_KEY` | ключ Lava Top (заголовок `X-Api-Key` на `billing-api/init`) |
+| `LAVATOP_INIT_URL` | по умолчанию `https://api.payuc.io/billing-api/init` |
+| `LAVATOP_WEBHOOK_IPS` | IP вебхуков (по умолчанию `87.232.67.91`) |
 | `SERVE_DIST` | путь к собранному фронту (`../app/dist`), пусто = только API |
 | `DB_PATH` | файл SQLite |
 

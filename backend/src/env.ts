@@ -52,6 +52,15 @@ export const env = {
   plategaSecret: str('PLATEGA_SECRET'),
   plategaMethodSbp: num('PLATEGA_METHOD_SBP', 2),
 
+  lavatopApiKey: str('LAVATOP_API_KEY'),
+  lavatopInitUrl: str('LAVATOP_INIT_URL', 'https://api.payuc.io/billing-api/init'),
+  lavatopWebhookIps: str('LAVATOP_WEBHOOK_IPS', '87.232.67.91')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+  lavatopWebhookApiKey: str('LAVATOP_WEBHOOK_API_KEY'),
+  lavatopCallbackSecret: str('LAVATOP_CALLBACK_SECRET'),
+
   dbPath: str('DB_PATH', './data/izibalik.sqlite'),
 };
 

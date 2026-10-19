@@ -12,6 +12,11 @@ import { SERVICE_FEE_PCT } from './fees.js';
 import { saveBroadcastImage, broadcastImagePath } from './broadcast-media.js';
 import { verifyPlategaCallback, type PlategaCallbackBody } from './platega.js';
 import {
+  parseLavatopPaidEvent,
+  verifyLavatopWebhookApiKey,
+  verifyLavatopWebhookIp,
+} from './lavatop.js';
+import {
   createOrder,
   refreshOrder,
   markOrderPaid,
@@ -284,6 +289,31 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 <div style="font-family:system-ui;max-width:420px;margin:40px auto;text-align:center">
   <h2>✅ Оплачено</h2><p>Заказ ${id} оплачен. Вернитесь в Telegram — выдача идёт.</p>
 </div>`;
+  });
+
+  // --- Lava Top (PayUC billing-api/init): вебхук с 87.232.67.91 ---
+  app.post('/api/webhooks/lavatop', async (req, reply) => {
+    const ip =
+      String((req.headers['x-real-ip'] as string) || req.ip || req.socket.remoteAddress || '').replace(
+        /^::ffff:/,
+        '',
+      );
+    if (!verifyLavatopWebhookIp(ip)) {
+      req.log.warn({ ip }, 'lavatop webhook: rejected IP');
+      return reply.code(403).send({ ok: false });
+    }
+    if (!verifyLavatopWebhookApiKey(req.headers as Record<string, string | string[] | undefined>)) {
+      return reply.code(401).send({ ok: false });
+    }
+    const body = (req.body || {}) as Record<string, unknown>;
+    const paid = parseLavatopPaidEvent(body);
+    if (!paid) return reply.send({ ok: true });
+    const o = getOrder.get(paid.orderId) as OrderRow | undefined;
+    if (o && paid.amountRub != null && paid.amountRub !== o.amount) {
+      req.log.warn({ orderId: paid.orderId, amount: paid.amountRub, expected: o.amount }, 'lavatop amount mismatch');
+    }
+    if (o && o.status === 'pending') await markOrderPaid(paid.orderId);
+    return reply.send({ ok: true });
   });
 
   // --- Platega: callback (Настройки → Callback URLs в ЛК) ---
