@@ -54,11 +54,16 @@ export const env = {
 
   lavatopApiKey: str('LAVATOP_API_KEY'),
   lavatopInitUrl: str('LAVATOP_INIT_URL', 'https://api.payuc.io/billing-api/init'),
-  /** Пусто = не фильтровать по IP (режим LAVA Business). Для PayUC: 87.232.67.91 */
-  lavatopWebhookIps: str('LAVATOP_WEBHOOK_IPS', '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean),
+  /** PayUC: 87.232.67.91. Пустая строка в .env = не фильтровать; переменная «-» = явно отключить. */
+  lavatopWebhookIps: (() => {
+    const raw = process.env['LAVATOP_WEBHOOK_IPS'];
+    if (raw === '-') return [] as string[];
+    if (raw !== undefined && raw !== '') {
+      return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    const lavaBiz = Boolean(process.env['LAVA_SHOP_ID'] && process.env['LAVA_SECRET_KEY']);
+    return lavaBiz ? [] : ['87.232.67.91'];
+  })(),
   lavatopWebhookApiKey: str('LAVATOP_WEBHOOK_API_KEY'),
   lavatopCallbackSecret: str('LAVATOP_CALLBACK_SECRET'),
 

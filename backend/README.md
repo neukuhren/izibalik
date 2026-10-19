@@ -37,7 +37,16 @@ npm run build && npm start
 | `PAYMENT_PROVIDER` | `lavatop` / `platega` / `stub` |
 | `LAVATOP_API_KEY` | ключ Lava Top (заголовок `X-Api-Key` на `billing-api/init`) |
 | `LAVATOP_INIT_URL` | по умолчанию `https://api.payuc.io/billing-api/init` |
-| `LAVATOP_WEBHOOK_IPS` | IP вебхуков (по умолчанию `87.232.67.91`) |
+| `LAVATOP_WEBHOOK_IPS` | IP вебхуков PayUC (по умолчанию `87.232.67.91`; `-` = отключить) |
+
+### Lava Top / PayUC (billing-api/init)
+
+1. В `backend/.env`: `PAYMENT_PROVIDER=lavatop`, `LAVATOP_API_KEY`, `PUBLIC_URL`, `LAVATOP_WEBHOOK_IPS=87.232.67.91`.
+2. Webhook в ЛК Lava: `https://<домен>/api/webhooks/lavatop` (должен отвечать **GET 200**).
+3. На сервере: `LAVATOP_API_KEY='…' ./deploy/configure-lavatop-payuc.sh` → `./deploy/deploy-izibalik.sh`.
+4. Проверка ключа: `cd backend && npm run build && npm run job:probe-payuc` (ожидается HTTP 200 и ссылка; **403 User not found** — ключ не активирован у PayUC/Lava Top).
+
+Если PayUC отвечает `User not found`, это **не исправляется кодом** — нужна активация ключа в поддержке Lava Top.
 | `SERVE_DIST` | путь к собранному фронту (`../app/dist`), пусто = только API |
 | `DB_PATH` | файл SQLite |
 

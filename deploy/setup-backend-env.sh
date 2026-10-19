@@ -39,6 +39,8 @@ sed -i \
   -e 's|^MINIAPP_URL=.*|MINIAPP_URL=https://izibalik.shop/|' \
   -e 's|^PUBLIC_URL=.*|PUBLIC_URL=https://izibalik.shop|' \
   -e 's|^PAYMENT_PROVIDER=.*|PAYMENT_PROVIDER=lavatop|' \
+  -e 's|^LAVATOP_INIT_URL=.*|LAVATOP_INIT_URL=https://api.payuc.io/billing-api/init|' \
+  -e 's|^LAVATOP_WEBHOOK_IPS=.*|LAVATOP_WEBHOOK_IPS=87.232.67.91|' \
   "$ENV_FILE"
 
-echo "Создан ${ENV_FILE} — проверьте FAZER_API_KEY и платёжку."
+echo "Создан ${ENV_FILE} — проверьте FAZER_API_KEY и LAVATOP_API_KEY (deploy/configure-lavatop-payuc.sh)."

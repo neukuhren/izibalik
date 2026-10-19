@@ -10,6 +10,15 @@ export function lavaBusinessConfigured(): boolean {
   return Boolean(env.lavaShopId && env.lavaSecretKey);
 }
 
+export function payucConfigured(): boolean {
+  return Boolean(env.lavatopApiKey);
+}
+
+/** PayUC / Lava Top: вебхуки только с allowlist IP, если не включён LAVA Business. */
+export function usePayucWebhookIpFilter(): boolean {
+  return payucConfigured() && !lavaBusinessConfigured() && env.lavatopWebhookIps.length > 0;
+}
+
 function lavaBusinessSign(rawBody: string): string {
   return createHmac('sha256', env.lavaSecretKey).update(rawBody).digest('hex');
 }
@@ -118,11 +127,13 @@ export async function createLavatopPayment(
 
   const data = await parseJson(r);
   if (!r.ok) {
-    const msg =
-      (typeof data === 'string' ? data : null) ||
-      data?.message ||
-      data?.error ||
-      `HTTP ${r.status}`;
+    const plain = typeof data === 'string' ? data.trim() : '';
+    const msg = plain || data?.message || data?.error || `HTTP ${r.status}`;
+    if (r.status === 403 && /user not found/i.test(String(msg))) {
+      throw new Error(
+        'Lava Top / PayUC: ключ не принят (User not found). Попросите поддержку активировать API-ключ для billing-api/init.',
+      );
+    }
     throw new Error(String(msg));
   }
 

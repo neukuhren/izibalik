@@ -18,6 +18,7 @@ import {
   verifyLavaBusinessWebhookSignature,
   verifyPaycoreSignature,
   lavaBusinessConfigured,
+  usePayucWebhookIpFilter,
 } from './lavatop.js';
 import {
   createOrder,
@@ -306,9 +307,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       typeof (req as FastifyRequest & { rawBody?: string }).rawBody === 'string'
         ? (req as FastifyRequest & { rawBody: string }).rawBody
         : '';
-    const businessWebhook = lavaBusinessConfigured() || Boolean(env.lavaWebhookSecret);
+    const skipIpFilter = lavaBusinessConfigured() || Boolean(env.lavaWebhookSecret) || !usePayucWebhookIpFilter();
 
-    if (!businessWebhook && !verifyLavatopWebhookIp(ip)) {
+    if (!skipIpFilter && !verifyLavatopWebhookIp(ip)) {
       req.log.warn({ ip }, 'lavatop webhook: rejected IP');
       return reply.code(403).send({ ok: false });
     }

@@ -13,6 +13,7 @@
     "start": "node dist/index.js",
     "job:refresh-paid": "node dist/jobs/refresh-paid-orders.js",
     "job:pricing-snapshot": "node dist/jobs/pricing-snapshot.js",
+    "job:probe-payuc": "node dist/jobs/probe-payuc.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
