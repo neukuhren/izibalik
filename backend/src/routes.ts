@@ -348,8 +348,8 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     return reply.send({ ok: true });
   };
 
+  // GET (и автоматический HEAD в Fastify) — проверка URL в ЛК Lava / PayUC
   app.get('/api/webhooks/lavatop', async (_req, reply) => reply.send({ ok: true }));
-  app.head('/api/webhooks/lavatop', async (_req, reply) => reply.code(200).send());
 
   app.post(
     '/api/webhooks/lavatop',
