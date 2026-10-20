@@ -38,7 +38,7 @@ sed -i \
   -e 's|^SERVE_DIST=.*|SERVE_DIST=|' \
   -e 's|^MINIAPP_URL=.*|MINIAPP_URL=https://izibalik.shop/|' \
   -e 's|^PUBLIC_URL=.*|PUBLIC_URL=https://izibalik.shop|' \
-  -e 's|^PAYMENT_PROVIDER=.*|PAYMENT_PROVIDER=lavatop|' \
+  -e 's|^PAYMENT_PROVIDER=.*|PAYMENT_PROVIDER=lava|' \
   -e 's|^LAVATOP_INIT_URL=.*|LAVATOP_INIT_URL=https://api.payuc.io/billing-api/init|' \
   -e 's|^LAVATOP_WEBHOOK_IPS=.*|LAVATOP_WEBHOOK_IPS=87.232.67.91|' \
   "$ENV_FILE"

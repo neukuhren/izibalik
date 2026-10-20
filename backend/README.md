@@ -34,12 +34,21 @@ npm run build && npm start
 | `ADMIN_IDS` | Telegram ID админов через запятую |
 | `FAZER_API_KEY` | ключ FazerCards |
 | `PUBLIC_URL` | публичный URL бэкенда (redirect/webhook оплаты) |
-| `PAYMENT_PROVIDER` | `lavatop` / `platega` / `stub` |
+| `PAYMENT_PROVIDER` | `lava` (lava.ru) / `lavatop` (legacy PayUC) / `platega` / `stub` |
 | `LAVATOP_API_KEY` | ключ Lava Top (заголовок `X-Api-Key` на `billing-api/init`) |
 | `LAVATOP_INIT_URL` | по умолчанию `https://api.payuc.io/billing-api/init` |
 | `LAVATOP_WEBHOOK_IPS` | IP вебхуков PayUC (по умолчанию `87.232.67.91`; `-` = отключить) |
 
-### Lava Top / PayUC (billing-api/init)
+### LAVA Business (lava.ru)
+
+1. Ключи в ЛК [business.lava.ru](https://business.lava.ru): **секретный ключ API** (`LAVA_SECRET_KEY`), **дополнительный** для вебхуков (`LAVA_WEBHOOK_SECRET`), `shopId` → `LAVA_SHOP_ID`.
+2. Webhook: `https://<домен>/api/webhooks/lava` (GET 200 для проверки в ЛК).
+3. На сервере: `LAVA_SHOP_ID=… LAVA_SECRET_KEY=… LAVA_WEBHOOK_SECRET=… ./deploy/configure-lava-business.sh`
+4. Проверка: `npm run job:probe-lava`
+
+Документация: https://developer.lava.ru/
+
+### Lava Top / PayUC (legacy, billing-api/init)
 
 1. В `backend/.env`: `PAYMENT_PROVIDER=lavatop`, `LAVATOP_API_KEY`, `PUBLIC_URL`, `LAVATOP_WEBHOOK_IPS=87.232.67.91`.
 2. Webhook в ЛК Lava: `https://<домен>/api/webhooks/lavatop` (должен отвечать **GET 200**).

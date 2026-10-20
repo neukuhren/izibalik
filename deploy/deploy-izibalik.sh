@@ -16,7 +16,7 @@ git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-chmod +x deploy/bootstrap-project.sh deploy/server-setup.sh deploy/recover-izibalik.sh deploy/install-systemd.sh deploy/configure-lavatop-payuc.sh
+chmod +x deploy/bootstrap-project.sh deploy/server-setup.sh deploy/recover-izibalik.sh deploy/install-systemd.sh deploy/configure-lavatop-payuc.sh deploy/configure-lava-business.sh
 ./deploy/bootstrap-project.sh
 ./deploy/install-systemd.sh
 

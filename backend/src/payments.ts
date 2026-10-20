@@ -1,6 +1,7 @@
 import { env } from './env.js';
 import { createPlategaPayment } from './platega.js';
 import { createLavatopPayment } from './lavatop.js';
+import { createLavaInvoice } from './lava.js';
 
 export interface PaymentRequest {
   orderId: string;
@@ -35,6 +36,15 @@ class PlategaProvider implements PaymentProvider {
   }
 }
 
+class LavaProvider implements PaymentProvider {
+  readonly name = 'lava';
+  async createPayment(req: PaymentRequest): Promise<PaymentResult> {
+    const res = await createLavaInvoice(req.orderId, req.amountRub, req.description);
+    return { redirect: res.redirect, providerId: res.invoiceId || undefined };
+  }
+}
+
+/** @deprecated PayUC / Lava Top */
 class LavatopProvider implements PaymentProvider {
   readonly name = 'lavatop';
   async createPayment(req: PaymentRequest): Promise<PaymentResult> {
@@ -49,6 +59,9 @@ export function getProvider(): PaymentProvider {
   switch (env.paymentProvider) {
     case 'platega':
       provider = new PlategaProvider();
+      break;
+    case 'lava':
+      provider = new LavaProvider();
       break;
     case 'lavatop':
       provider = new LavatopProvider();

@@ -15,11 +15,10 @@ import {
   parseLavatopPaidEvent,
   verifyLavatopWebhookApiKey,
   verifyLavatopWebhookIp,
-  verifyLavaBusinessWebhookSignature,
   verifyPaycoreSignature,
-  lavaBusinessConfigured,
   usePayucWebhookIpFilter,
 } from './lavatop.js';
+import { parseLavaPaidWebhook, verifyLavaWebhookSignature } from './lava.js';
 import {
   createOrder,
   refreshOrder,
@@ -295,7 +294,64 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 </div>`;
   });
 
-  // --- LAVA Business / Lava Top: вебхук оплаты ---
+  const captureRawBody = async (request: FastifyRequest, _reply: FastifyReply, payload: AsyncIterable<Buffer>) => {
+    const { Readable } = await import('node:stream');
+    const chunks: Buffer[] = [];
+    for await (const chunk of payload) chunks.push(chunk);
+    const raw = Buffer.concat(chunks);
+    (request as FastifyRequest & { rawBody?: string }).rawBody = raw.toString('utf8');
+    return Readable.from([raw]);
+  };
+
+  const readWebhookBody = (req: FastifyRequest): Record<string, unknown> | null => {
+    const rawBody =
+      typeof (req as FastifyRequest & { rawBody?: string }).rawBody === 'string'
+        ? (req as FastifyRequest & { rawBody: string }).rawBody
+        : '';
+    if (rawBody) {
+      try {
+        return JSON.parse(rawBody) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+    return (req.body || {}) as Record<string, unknown>;
+  };
+
+  const applyPaid = async (
+    req: FastifyRequest,
+    paid: { orderId: string; amountRub?: number } | null,
+    reply: FastifyReply,
+  ) => {
+    if (!paid) return reply.send({ ok: true });
+    const o = getOrder.get(paid.orderId) as OrderRow | undefined;
+    if (o && paid.amountRub != null && paid.amountRub !== o.amount) {
+      req.log.warn({ orderId: paid.orderId, amount: paid.amountRub, expected: o.amount }, 'lava amount mismatch');
+    }
+    if (o && o.status === 'pending') await markOrderPaid(paid.orderId);
+    return reply.send({ ok: true });
+  };
+
+  // --- LAVA (lava.ru / business.lava.ru) ---
+  const lavaWebhookHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+    const hdrs = req.headers as Record<string, string | string[] | undefined>;
+    const rawBody =
+      typeof (req as FastifyRequest & { rawBody?: string }).rawBody === 'string'
+        ? (req as FastifyRequest & { rawBody: string }).rawBody
+        : '';
+    if (rawBody && !verifyLavaWebhookSignature(rawBody, hdrs)) {
+      req.log.warn('lava webhook: invalid signature');
+      return reply.code(403).send({ ok: false });
+    }
+    const body = readWebhookBody(req);
+    if (!body) return reply.code(400).send({ ok: false });
+    return applyPaid(req, parseLavaPaidWebhook(body), reply);
+  };
+
+  app.get('/api/webhooks/lava', async (_req, reply) => reply.send({ ok: true }));
+  app.post('/api/webhooks/lava', { preParsing: captureRawBody }, lavaWebhookHandler);
+
+  // --- Legacy PayUC / Lava Top ---
   const lavatopWebhookHandler = async (req: FastifyRequest, reply: FastifyReply) => {
     const ip =
       String((req.headers['x-real-ip'] as string) || req.ip || req.socket.remoteAddress || '').replace(
@@ -307,64 +363,26 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       typeof (req as FastifyRequest & { rawBody?: string }).rawBody === 'string'
         ? (req as FastifyRequest & { rawBody: string }).rawBody
         : '';
-    const skipIpFilter = lavaBusinessConfigured() || Boolean(env.lavaWebhookSecret) || !usePayucWebhookIpFilter();
-
-    if (!skipIpFilter && !verifyLavatopWebhookIp(ip)) {
+    if (usePayucWebhookIpFilter() && !verifyLavatopWebhookIp(ip)) {
       req.log.warn({ ip }, 'lavatop webhook: rejected IP');
       return reply.code(403).send({ ok: false });
     }
-    if (!verifyLavatopWebhookApiKey(hdrs)) {
-      return reply.code(401).send({ ok: false });
-    }
-    if (rawBody && !verifyLavaBusinessWebhookSignature(rawBody, hdrs)) {
-      req.log.warn('lavatop webhook: invalid LAVA Business signature');
-      return reply.code(403).send({ ok: false });
-    }
+    if (!verifyLavatopWebhookApiKey(hdrs)) return reply.code(401).send({ ok: false });
     if (rawBody && env.lavatopCallbackSecret) {
       const paycoreSig = hdrs['x-paycore-signature'] || hdrs['X-Paycore-Signature'];
       if (paycoreSig && !verifyPaycoreSignature(rawBody, hdrs)) {
         return reply.code(403).send({ ok: false });
       }
     }
-
-    let body: Record<string, unknown>;
-    if (rawBody) {
-      try {
-        body = JSON.parse(rawBody) as Record<string, unknown>;
-      } catch {
-        return reply.code(400).send({ ok: false });
-      }
-    } else {
-      body = (req.body || {}) as Record<string, unknown>;
-    }
-
-    const paid = parseLavatopPaidEvent(body);
-    if (!paid) return reply.send({ ok: true });
-    const o = getOrder.get(paid.orderId) as OrderRow | undefined;
-    if (o && paid.amountRub != null && paid.amountRub !== o.amount) {
-      req.log.warn({ orderId: paid.orderId, amount: paid.amountRub, expected: o.amount }, 'lavatop amount mismatch');
-    }
-    if (o && o.status === 'pending') await markOrderPaid(paid.orderId);
-    return reply.send({ ok: true });
+    const body = readWebhookBody(req);
+    if (!body) return reply.code(400).send({ ok: false });
+    const lava = parseLavaPaidWebhook(body);
+    if (lava) return applyPaid(req, lava, reply);
+    return applyPaid(req, parseLavatopPaidEvent(body), reply);
   };
 
-  // GET (и автоматический HEAD в Fastify) — проверка URL в ЛК Lava / PayUC
   app.get('/api/webhooks/lavatop', async (_req, reply) => reply.send({ ok: true }));
-
-  app.post(
-    '/api/webhooks/lavatop',
-    {
-      preParsing: async (request, _reply, payload) => {
-        const { Readable } = await import('node:stream');
-        const chunks: Buffer[] = [];
-        for await (const chunk of payload as AsyncIterable<Buffer>) chunks.push(chunk);
-        const raw = Buffer.concat(chunks);
-        (request as FastifyRequest & { rawBody?: string }).rawBody = raw.toString('utf8');
-        return Readable.from([raw]);
-      },
-    },
-    lavatopWebhookHandler,
-  );
+  app.post('/api/webhooks/lavatop', { preParsing: captureRawBody }, lavatopWebhookHandler);
 
   // --- Platega: callback (Настройки → Callback URLs в ЛК) ---
   app.post('/api/webhooks/platega', async (req, reply) => {

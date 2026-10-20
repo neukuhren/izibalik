@@ -71,6 +71,7 @@ export const env = {
   lavaShopId: str('LAVA_SHOP_ID'),
   lavaSecretKey: str('LAVA_SECRET_KEY'),
   lavaWebhookSecret: str('LAVA_WEBHOOK_SECRET'),
+  lavaWebhookPath: str('LAVA_WEBHOOK_PATH', '/api/webhooks/lava'),
   lavaApiBase: str('LAVA_API_BASE', 'https://api.lava.ru'),
 
   dbPath: str('DB_PATH', './data/izibalik.sqlite'),
