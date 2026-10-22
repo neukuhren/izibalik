@@ -8,7 +8,7 @@ import { getConfig, saveConfig, type ShopConfig } from './config.js';
 import { catalogForClient, catalogSyncMeta } from './catalog.js';
 import { refreshFazerPricing } from './catalog-sync.js';
 import { getBalanceUsd, getRateRub, createCryptoInvoice } from './fazer.js';
-import { SERVICE_FEE_PCT } from './fees.js';
+import { SERVICE_FEE_PCT, isLavaFeeOnCheckout } from './fees.js';
 import { saveBroadcastImage, broadcastImagePath } from './broadcast-media.js';
 import { verifyPlategaCallback, type PlategaCallbackBody } from './platega.js';
 import {
@@ -60,7 +60,14 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/api/catalog', async () => {
     const rate = await getRateRub();
-    return { ok: true, rate_rub: rate, fee_pct: SERVICE_FEE_PCT, products: catalogForClient(rate), ...catalogSyncMeta() };
+    return {
+      ok: true,
+      rate_rub: rate,
+      fee_pct: SERVICE_FEE_PCT,
+      fee_on_lava_checkout: isLavaFeeOnCheckout(),
+      products: catalogForClient(rate),
+      ...catalogSyncMeta(),
+    };
   });
 
   /** Принудительно: offers + курс с Fazer, затем актуальный каталог (только админ). */
@@ -73,6 +80,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       ok: true,
       rate_rub: rate,
       fee_pct: SERVICE_FEE_PCT,
+      fee_on_lava_checkout: isLavaFeeOnCheckout(),
       products: catalogForClient(rate),
       ...catalogSyncMeta(),
     };
@@ -345,7 +353,14 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     }
     const body = readWebhookBody(req);
     if (!body) return reply.code(400).send({ ok: false });
-    return applyPaid(req, parseLavaPaidWebhook(body), reply);
+    const paid = parseLavaPaidWebhook(body);
+    if (!paid) {
+      req.log.info(
+        { status: body.status, state: body.state, orderId: body.orderId ?? body.order_id },
+        'lava webhook: ignored (not paid)',
+      );
+    }
+    return applyPaid(req, paid, reply);
   };
 
   app.get('/api/webhooks/lava', async (_req, reply) => reply.send({ ok: true }));

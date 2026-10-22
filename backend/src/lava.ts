@@ -93,11 +93,32 @@ export async function createLavaInvoice(
   return { invoiceId, redirect };
 }
 
+function isLavaPaidStatus(v: unknown): boolean {
+  if (v === 2 || v === '2') return true;
+  const s = String(v ?? '').toLowerCase();
+  return s === 'success' || s === 'paid' || s === 'completed' || s === 'complete';
+}
+
+/** Опрос LAVA, если вебхук не дошёл (см. /business/invoice/status). */
+export async function getLavaInvoicePaidByOrderId(orderId: string): Promise<boolean> {
+  if (!lavaConfigured()) return false;
+  const resp = await lavaBusinessPost('/business/invoice/status', {
+    orderId,
+    shopId: env.lavaShopId,
+  });
+  if (!resp?.status_check) return false;
+  const data = resp.data as Record<string, unknown> | undefined;
+  if (!data) return false;
+  if (isLavaPaidStatus(data.status)) return true;
+  return isLavaPaidStatus(data.state) || isLavaPaidStatus(data.payment_status);
+}
+
 export type LavaWebhookBody = Record<string, unknown>;
 
 function headerOne(v: string | string[] | undefined): string {
   if (Array.isArray(v)) return v[0] ?? '';
-  return v ?? '';
+  const s = (v ?? '').trim();
+  return s.replace(/^bearer\s+/i, '');
 }
 
 function signaturesMatch(got: string, expected: string): boolean {
@@ -149,21 +170,33 @@ export interface LavaPaidEvent {
   invoiceId?: string;
 }
 
-export function parseLavaPaidWebhook(body: LavaWebhookBody): LavaPaidEvent | null {
-  const orderId = String(body.orderId || body.order_id || '').trim();
-  const status = String(body.status || '').toLowerCase();
-  if (orderId && (status === 'success' || status === 'paid')) {
-    const amt =
-      body.amount != null
-        ? Math.round(Number(body.amount))
-        : body.sum != null
-          ? Math.round(Number(body.sum))
-          : undefined;
-    return {
-      orderId,
-      amountRub: amt,
-      invoiceId: String(body.invoice_id || body.invoiceId || body.id || '') || undefined,
-    };
+function lavaWebhookPayload(body: LavaWebhookBody): LavaWebhookBody {
+  const nested = body.data;
+  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+    return { ...(nested as LavaWebhookBody), ...body };
   }
-  return null;
+  return body;
+}
+
+export function parseLavaPaidWebhook(body: LavaWebhookBody): LavaPaidEvent | null {
+  const b = lavaWebhookPayload(body);
+  const orderId = String(b.orderId || b.order_id || '').trim();
+  if (!orderId) return null;
+  const paid =
+    isLavaPaidStatus(b.status) ||
+    isLavaPaidStatus(b.state) ||
+    isLavaPaidStatus(b.payment_status) ||
+    String(b.type || '').toLowerCase() === 'payment.success';
+  if (!paid) return null;
+  const amt =
+    b.amount != null
+      ? Math.round(Number(b.amount))
+      : b.sum != null
+        ? Math.round(Number(b.sum))
+        : undefined;
+  return {
+    orderId,
+    amountRub: amt,
+    invoiceId: String(b.invoice_id || b.invoiceId || b.id || '') || undefined,
+  };
 }

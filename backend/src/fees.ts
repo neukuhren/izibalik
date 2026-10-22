@@ -11,3 +11,13 @@ export function serviceFeeRub(subtotalRub: number): number {
 export function totalWithFeeRub(subtotalRub: number): number {
   return Math.max(1, subtotalRub + serviceFeeRub(subtotalRub));
 }
+
+/** LAVA добавляет комиссию на своей странице оплаты — в счёт уходит только сумма товара. */
+export function isLavaFeeOnCheckout(): boolean {
+  return env.paymentProvider === 'lava';
+}
+
+export function chargeAmountRub(subtotalRub: number): number {
+  if (isLavaFeeOnCheckout()) return Math.max(1, subtotalRub);
+  return totalWithFeeRub(subtotalRub);
+}
