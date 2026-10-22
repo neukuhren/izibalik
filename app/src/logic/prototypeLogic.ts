@@ -14,7 +14,7 @@ const ADMIN_IDS = [1239066805, 1606026306];
 const isAdminUser = () => { const u = getTgUser(); return !!u && ADMIN_IDS.includes(u.id); };
 
 const PIDS_KEY = 'izi_pids';
-const SERVICE_FEE_PCT = 8;
+const SERVICE_FEE_PCT = 4;
 const loadPids = () => {
   try { const v = JSON.parse(localStorage.getItem(PIDS_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; }
   catch (e) { return []; }
@@ -80,6 +80,7 @@ export class PrototypeLogic extends Logic {
     });
     // Реальных заказов/выручки/клиентов ещё нет — до подключения бекенда пусто.
     this.defaultProducts = P;
+    this.configHydrated = false;
     this.state = {
       mode: 'client', screen: 'shop', tab: 'shop', game: 'pubgm', shopCat: 'uc',
       booting: true, bootP: 0, bootOp: 1, bootLine: 'инициализация…',
@@ -96,7 +97,8 @@ export class PrototypeLogic extends Logic {
       bcImageId: '', bcImageName: '', bcUploading: false,
       cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT,
       catalogSyncedAt: null, catalogOffersSynced: 0, catalogOffersTotal: 0,
-      catalogRefreshing: false
+      catalogRefreshing: false,
+      shopReady: false,
     };
   }
   componentDidMount() {
@@ -107,20 +109,15 @@ export class PrototypeLogic extends Logic {
     if (s.booting || s.booting === undefined) { this.setState({ booting: true, bootP: 0, bootOp: 1 }); this.runBoot(); }
     // реальный баланс поставщика через серверный эндпоинт (ключ на сервере)
     fetch('/api/balance').then(r => r.ok ? r.json() : null).then(d => {
-      if (d && d.ok) this.setState({ supBalUsd: Number(d.balance_usd), supRate: Number(d.rate_rub) });
+      if (d && d.ok) this.setState({ supBalUsd: Number(d.balance_usd) });
     }).catch(() => {});
-    this.loadCatalog();
+    this.initShopData();
     this.catalogInt = setInterval(() => this.loadCatalog(), 60 * 60 * 1000);
     // регистрация пользователя для аудитории рассылки (по подписанному initData)
     if (getInitData()) {
       fetch('/api/seen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) }).catch(() => {});
       this.loadMyOrders();
     }
-    // конфиг цен/наценок/промо с сервера (общий для всех клиентов)
-    fetch('/api/config').then(r => r.ok ? r.json() : null).then(d => {
-      if (d && d.ok) this.applyConfig(d.config || {}, true);
-      else this.setState({ savedCfg: this.cfgStr(this.buildConfig()) });
-    }).catch(() => this.setState({ savedCfg: this.cfgStr(this.buildConfig()) }));
     // возобновление опроса статуса при перезапуске мини-аппа
     if ((s.screen === 'paywait' || (s.screen === 'status' && !s.success)) && s.curOrderId) {
       this.pollOrder(s.curOrderId);
@@ -159,6 +156,8 @@ export class PrototypeLogic extends Logic {
   cfgStr(cfg) { return JSON.stringify(cfg); }
   // применить конфиг с сервера к товарам/промо; fromServer=true → это база «сохранённого»
   applyConfig(cfg, fromServer) {
+    if (fromServer && this.configHydrated) return;
+    if (fromServer) this.configHydrated = true;
     const products = this.state.products.map(p => ({
       ...p,
       markup: (cfg.markups && cfg.markups[p.id] != null) ? cfg.markups[p.id] : p.markup,
@@ -333,24 +332,66 @@ export class PrototypeLogic extends Logic {
       screen: 'checkout', tab: 'shop', pidError: '', appliedPromo: null, promoState: 'idle', promo: ''
     });
   }
-  applyCatalogPayload(d) {
-    if (!d || !d.ok) return;
+  mergeCatalogIntoProducts(products, d) {
+    if (!d || !d.ok) return products;
     const byId = new Map((d.products || []).map(x => [x.id, x]));
-    this.setState({
+    return products.map(p => {
+      const c = byId.get(p.id);
+      return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
+    });
+  }
+  catalogMetaPatch(d, base = {}) {
+    if (!d || !d.ok) return base;
+    return {
+      ...base,
       supRate: Number(d.rate_rub) || this.state.supRate,
       feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
       catalogSyncedAt: d.catalog_synced_at != null ? d.catalog_synced_at : this.state.catalogSyncedAt,
       catalogOffersSynced: d.offers_synced != null ? Number(d.offers_synced) : this.state.catalogOffersSynced,
       catalogOffersTotal: d.offers_total != null ? Number(d.offers_total) : this.state.catalogOffersTotal,
       catalogRefreshing: false,
-        products: this.state.products.map(p => {
-          const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
-        }),
-        defaultProducts: this.defaultProducts.map(p => {
-          const c = byId.get(p.id);
-          return c ? { ...p, buyUsd: Number(c.buyUsd), buy: Number(c.buyRub) } : p;
-        }),
+      shopReady: true,
+    };
+  }
+  applyCatalogPayload(d) {
+    if (!d || !d.ok) return;
+    const products = this.mergeCatalogIntoProducts(this.state.products, d);
+    const defaultProducts = this.mergeCatalogIntoProducts(this.defaultProducts, d);
+    this.setState({
+      ...this.catalogMetaPatch(d),
+      products,
+      defaultProducts,
+    });
+  }
+  initShopData() {
+    Promise.all([
+      fetch('/api/catalog').then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('/api/config').then(r => (r.ok ? r.json() : null)).catch(() => null),
+    ]).then(([cat, cfgRes]) => {
+      let products = this.mergeCatalogIntoProducts(this.state.products, cat);
+      let defaultProducts = this.mergeCatalogIntoProducts(this.defaultProducts, cat);
+      const patch = this.catalogMetaPatch(cat, { products, defaultProducts });
+      if (cfgRes && cfgRes.ok) {
+        const cfg = cfgRes.config || {};
+        products = products.map(p => ({
+          ...p,
+          markup: cfg.markups && cfg.markups[p.id] != null ? cfg.markups[p.id] : p.markup,
+          active: cfg.active && cfg.active[p.id] != null ? cfg.active[p.id] : p.active,
+        }));
+        patch.products = products;
+        patch.bulkMarkup = cfg.bulkMarkup != null ? cfg.bulkMarkup : this.state.bulkMarkup;
+        patch.promos = Array.isArray(cfg.promos) ? cfg.promos : this.state.promos;
+        patch.savedCfg = this.cfgStr(this.buildConfig({
+          products,
+          bulkMarkup: patch.bulkMarkup,
+          promos: patch.promos,
+        }));
+        this.configHydrated = true;
+      } else if (!this.configHydrated) {
+        patch.savedCfg = this.cfgStr(this.buildConfig({ products }));
+      }
+      patch.shopReady = !!(cat && cat.ok);
+      this.setState(patch);
     });
   }
   loadCatalog(forceRefresh = false) {

@@ -1,5 +1,7 @@
-/** Комиссия сервиса при оплате (Platega и отображение на витрине). */
-export const SERVICE_FEE_PCT = 8;
+import { env } from './env.js';
+
+/** Комиссия сервиса при оплате (LAVA и отображение на витрине). */
+export const SERVICE_FEE_PCT = env.serviceFeePct;
 
 export function serviceFeeRub(subtotalRub: number): number {
   if (subtotalRub <= 0) return 0;

@@ -122,7 +122,13 @@ export async function markOrderPaid(orderId: string): Promise<void> {
   const o = getOrder.get(orderId) as OrderRow | undefined;
   if (!o) return;
   if (o.status !== 'pending') return;
-  updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: null, provider_id: null, updated_at: now() });
+  updateOrderStatus.run({
+    id: orderId,
+    status: 'paid',
+    fazer_id: null,
+    provider_id: o.provider_id,
+    updated_at: now(),
+  });
   if (o.promo) bumpPromoUsed(o.promo);
   if (o.user_id) void notifyUser(o.user_id, `✅ Оплата получена по заказу ${o.id}. Выдаём ${productName(o.product_id)}…`);
   await fulfillOrder(orderId);
@@ -169,8 +175,15 @@ export async function fulfillOrder(orderId: string): Promise<void> {
       updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
     }
   } catch (e) {
-    console.error('[fulfillOrder]', orderId, (e as Error).message);
-    updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: null, provider_id: null, updated_at: now() });
+    const msg = (e as Error).message || String(e);
+    console.error('[fulfillOrder]', orderId, msg);
+    updateOrderStatus.run({
+      id: orderId,
+      status: 'fulfill_failed',
+      fazer_id: null,
+      provider_id: o.provider_id,
+      updated_at: now(),
+    });
     if (o.user_id) void notifyUser(o.user_id, `⚠️ Ошибка выдачи заказа ${o.id}. Поддержка свяжется с вами.`);
   }
 }

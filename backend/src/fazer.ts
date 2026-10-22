@@ -87,9 +87,17 @@ export async function validatePlayerId(
 }
 
 function parseFazerOrderPayload(d: any, fallbackId = ''): FazerOrder {
-  const order = d?.order ?? d;
-  const fazerId = String(order?.id ?? d?.order_id ?? d?.id ?? fallbackId);
-  const status = mapFazerStatus(order?.status ?? d?.status);
+  const order = d?.order ?? d?.data?.order ?? d?.data ?? d;
+  const fazerId = String(
+    order?.id ??
+      order?.order_id ??
+      d?.order_id ??
+      d?.id ??
+      d?.data?.id ??
+      d?.data?.order_id ??
+      fallbackId,
+  ).trim();
+  const status = mapFazerStatus(order?.status ?? d?.status ?? d?.data?.status);
   return { fazerId, status, raw: d };
 }
 
@@ -124,18 +132,27 @@ export async function createFazerOrder(
     },
     idempotencyKey,
   );
-  return parseFazerOrderPayload(d);
+  const parsed = parseFazerOrderPayload(d);
+  if (!parsed.fazerId) {
+    console.error('[fazer] create: пустой id заказа', JSON.stringify(d).slice(0, 800));
+    throw new Error('Fazer не вернул ID заказа выдачи');
+  }
+  return parsed;
 }
 
 export async function getFazerOrder(fazerId: string): Promise<FazerOrder | null> {
   if (!fazerId) return null;
-  try {
-    // Актуальный API: GET /orders/{id} (старый /topups/order/{id} отдаёт 404).
-    const d = await req<any>('GET', '/orders/' + encodeURIComponent(fazerId));
-    return parseFazerOrderPayload(d, fazerId);
-  } catch {
-    return null;
+  const paths = ['/orders/' + encodeURIComponent(fazerId), '/topups/order/' + encodeURIComponent(fazerId)];
+  for (const path of paths) {
+    try {
+      const d = await req<any>('GET', path);
+      const parsed = parseFazerOrderPayload(d, fazerId);
+      if (parsed.fazerId) return parsed;
+    } catch {
+      /* пробуем следующий путь */
+    }
   }
+  return null;
 }
 
 // Крипто-инвойс для пополнения баланса поставщика (админ /api/topup).

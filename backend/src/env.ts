@@ -42,6 +42,8 @@ export const env = {
   fazerBase: str('FAZER_BASE', 'https://api.fzr.cards/api/v2'),
   fazerKey: str('FAZER_API_KEY'),
   fallbackRate: num('FALLBACK_RATE_RUB', 78.07),
+  /** Комиссия сервиса на витрине и в сумме к оплате (LAVA: 4%). */
+  serviceFeePct: num('SERVICE_FEE_PCT', 4),
 
   paymentProvider: str('PAYMENT_PROVIDER', 'stub'),
   publicUrl: str('PUBLIC_URL', 'http://localhost:8080'),

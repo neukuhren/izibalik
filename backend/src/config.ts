@@ -36,8 +36,13 @@ export function getConfig(): ShopConfig {
 }
 
 export function saveConfig(cfg: Partial<ShopConfig>): ShopConfig {
-  const merged = { ...getConfig(), ...cfg };
-  // нормализация наценок 0..99, как в админке
+  const prev = getConfig();
+  const merged: ShopConfig = {
+    markups: { ...prev.markups, ...(cfg.markups ?? {}) },
+    active: { ...prev.active, ...(cfg.active ?? {}) },
+    bulkMarkup: typeof cfg.bulkMarkup === 'number' ? cfg.bulkMarkup : prev.bulkMarkup,
+    promos: Array.isArray(cfg.promos) ? cfg.promos : prev.promos,
+  };
   const clamp = (n: number) => Math.max(0, Math.min(99, Math.round(n)));
   for (const k of Object.keys(merged.markups)) merged.markups[k] = clamp(merged.markups[k]);
   merged.bulkMarkup = clamp(merged.bulkMarkup);
