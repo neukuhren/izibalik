@@ -95,7 +95,7 @@ export class PrototypeLogic extends Logic {
       npCode: '', npKind: 'pct', npVal: '10', npLimit: '100', npErr: false,
       bcText: '', bcAudience: 'all', bcBtnText: '', bcBtnUrl: '', bcCounts: null, bcStatus: null, bcErr: '',
       bcImageId: '', bcImageName: '', bcUploading: false,
-      cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT,
+      cartQty: {}, orderQty: 1, feePct: SERVICE_FEE_PCT, feeOnLavaCheckout: false,
       catalogSyncedAt: null, catalogOffersSynced: 0, catalogOffersTotal: 0,
       catalogRefreshing: false,
       shopReady: false,
@@ -299,8 +299,15 @@ export class PrototypeLogic extends Logic {
   }
   priceOf(p) { return Math.round(this.buyRubOf(p) * (1 + p.markup / 100)); }
   feePct() { return this.state.feePct || SERVICE_FEE_PCT; }
+  feeOnLavaCheckout() { return !!this.state.feeOnLavaCheckout; }
   serviceFee(subtotal) { return subtotal > 0 ? Math.round(subtotal * (this.feePct() / 100)) : 0; }
   totalWithFee(subtotal) { return Math.max(1, subtotal + this.serviceFee(subtotal)); }
+  /** Сумма к оплате: при LAVA комиссия только на их странице, в счёт — тариф. */
+  checkoutTotals(subtotal) {
+    const fee = this.serviceFee(subtotal);
+    if (this.feeOnLavaCheckout()) return { fee, total: Math.max(1, subtotal), feeOnLavaCheckout: true };
+    return { fee, total: this.totalWithFee(subtotal), feeOnLavaCheckout: false };
+  }
   cartQtyOf(id) { return Math.max(0, Math.floor(Number(this.state.cartQty[id]) || 0)); }
   cartBump(id, delta) {
     const next = Math.min(99, Math.max(0, this.cartQtyOf(id) + delta));
@@ -346,6 +353,7 @@ export class PrototypeLogic extends Logic {
       ...base,
       supRate: Number(d.rate_rub) || this.state.supRate,
       feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
+      feeOnLavaCheckout: d.fee_on_lava_checkout != null ? !!d.fee_on_lava_checkout : this.state.feeOnLavaCheckout,
       catalogSyncedAt: d.catalog_synced_at != null ? d.catalog_synced_at : this.state.catalogSyncedAt,
       catalogOffersSynced: d.offers_synced != null ? Number(d.offers_synced) : this.state.catalogOffersSynced,
       catalogOffersTotal: d.offers_total != null ? Number(d.offers_total) : this.state.catalogOffersTotal,
@@ -656,8 +664,7 @@ export class PrototypeLogic extends Logic {
     const selPrice = selUnit * selQty;
     const disc = this.discount();
     const subtotal = selPrice - disc;
-    const fee = this.serviceFee(subtotal);
-    const total = this.totalWithFee(subtotal);
+    const { fee, total, feeOnLavaCheckout } = this.checkoutTotals(subtotal);
     const cart = this.cartSummary();
     const ap = s.appliedPromo;
 
@@ -911,6 +918,7 @@ export class PrototypeLogic extends Logic {
       decOrderQty: () => this.setState({ orderQty: Math.max(1, selQty - 1) }),
       canOrderQty: sel.sub === 'uc' || sel.sub === 'nc',
       subtotalF: this.fmt(subtotal), feeF: this.fmt(fee), feePct: this.feePct(),
+      feeOnLavaCheckout,
       hasFee: fee > 0,
       cartItems: cart.items, cartUc: cart.uc, cartRubF: this.fmt(cart.rub), cartVisible: cart.items > 0,
       openCartCheckout: () => this.openCartCheckout(),

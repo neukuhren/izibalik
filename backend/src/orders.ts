@@ -11,11 +11,12 @@ import {
   type OrderRow,
 } from './db.js';
 import { getProduct, priceOf, discountFor, buyRub } from './catalog.js';
-import { serviceFeeRub, totalWithFeeRub } from './fees.js';
+import { chargeAmountRub, serviceFeeRub, totalWithFeeRub } from './fees.js';
+import { env } from './env.js';
+import { getLavaInvoicePaidByOrderId } from './lava.js';
 import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
 import { createFazerOrder, getFazerOrder, getRateRub, validatePlayerId } from './fazer.js';
 import { getProvider } from './payments.js';
-import { env } from './env.js';
 import { notifyUser } from './notify.js';
 
 export interface CreateOrderInput {
@@ -59,7 +60,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const promo = findPromo(cfg, input.promoCode);
   const discount = discountFor(unitPrice * qty, promo);
   const subtotal = Math.max(1, unitPrice * qty - discount);
-  const amount = totalWithFeeRub(subtotal);
+  const amount = chargeAmountRub(subtotal);
   const buy = buyRub(product, rate) * qty;
 
   const id = newOrderId();
@@ -251,6 +252,17 @@ export async function retryFulfillOrder(orderId: string): Promise<{ ok: boolean;
 export async function refreshOrder(orderId: string): Promise<OrderRow | undefined> {
   const o = getOrder.get(orderId) as OrderRow | undefined;
   if (!o) return undefined;
+  if (o.status === 'pending' && env.paymentProvider === 'lava') {
+    try {
+      const paid = await getLavaInvoicePaidByOrderId(o.id);
+      if (paid) {
+        await markOrderPaid(o.id);
+        return getOrder.get(orderId) as OrderRow | undefined;
+      }
+    } catch (e) {
+      console.warn('[refreshOrder] lava status', orderId, (e as Error).message);
+    }
+  }
   if (o.status === 'paid' && o.fazer_id) {
     const f = await getFazerOrder(o.fazer_id);
     if (f && f.status === 'done') {

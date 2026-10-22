@@ -276,7 +276,7 @@ export default function AppView({ v }: { v: Vals }) {
       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Скидка</span><span style={{color:'#d9ff00',fontVariantNumeric:'tabular-nums'}}>−{v.discountF} ₽</span></div>
     </>)}
     {v.hasFee && (<>
-      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Процент сервиса {v.feePct}%</span><span style={{color:'#e9eaf4',fontVariantNumeric:'tabular-nums'}}>{v.feeF} ₽</span></div>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',color:'#8b90ab'}}><span>Процент сервиса {v.feePct}{v.feeOnLavaCheckout ? ' · на странице LAVA' : ''}</span><span style={{color:'#e9eaf4',fontVariantNumeric:'tabular-nums'}}>{v.feeF} ₽</span></div>
     </>)}
     <div style={{height:'1px',background:'linear-gradient(90deg,transparent,rgba(0,240,255,.3),transparent)'}}></div>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}><span style={{fontSize:'13px',fontWeight:'600'}}>К оплате</span><span style={{fontFamily:'Orbitron,sans-serif',fontSize:'22px',fontWeight:'700',color:'#00f0ff',textShadow:'0 0 12px rgba(0,240,255,.5)'}}>{v.totalF} ₽</span></div>
