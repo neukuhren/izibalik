@@ -308,7 +308,7 @@ export default function AppView({ v }: { v: Vals }) {
     <span style={{fontFamily:'Orbitron,sans-serif',fontSize:'17px',fontWeight:'700',color:'#00f0ff'}}>{v.totalF} ₽</span>
   </div>
   {v.payHasErr && (<div style={{fontSize:'12px',color:'#ff2e7e',textAlign:'center'}}>{v.payErr}</div>)}
-  <div style={{fontSize:'10.5px',color:'#5a5f7d',textAlign:'center',lineHeight:'1.5'}}>Оплачивая, вы соглашаетесь с <a href="/terms" target="_blank" rel="noreferrer" style={{color:'#7b2fff'}}>условиями</a>.<br />Платёж обрабатывает провайдер Platega.</div>
+  <div style={{fontSize:'10.5px',color:'#5a5f7d',textAlign:'center',lineHeight:'1.5'}}>Оплачивая, вы соглашаетесь с <a href="/terms" target="_blank" rel="noreferrer" style={{color:'#7b2fff'}}>условиями</a>.<br />Платёж обрабатывает провайдер LAVA (СБП / карта).</div>
 </div>
 </>)}
 

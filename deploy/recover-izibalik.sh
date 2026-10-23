@@ -16,6 +16,9 @@ systemctl start nginx
 if [[ ! -f "${PROJECT_DIR}/backend/dist/index.js" ]]; then
   systemctl start izibalik-build.service
 fi
+# Не вызывать restart в фоне — зависшие systemctl блокируют start.
+pkill -9 -f 'systemctl (restart|start) izibalik-api' 2>/dev/null || true
+systemctl reset-failed izibalik-api.service 2>/dev/null || true
 systemctl start izibalik-api.service
 
 SSL_DOMAIN="${IZIBALIK_SSL_DOMAIN:-izibalik.shop}"
