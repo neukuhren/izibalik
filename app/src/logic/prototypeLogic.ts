@@ -371,7 +371,7 @@ export class PrototypeLogic extends Logic {
     if (!d || !d.ok) return base;
     return {
       ...base,
-      supRate: Number(d.rate_rub) || this.state.supRate,
+      supRate: Number(d.rate_rub) > 0 ? Number(d.rate_rub) : this.state.supRate || 78.07,
       feePct: Number(d.fee_pct) || this.state.feePct || SERVICE_FEE_PCT,
       feeOnLavaCheckout: d.fee_on_lava_checkout != null ? !!d.fee_on_lava_checkout : this.state.feeOnLavaCheckout,
       catalogSyncedAt: d.catalog_synced_at != null ? d.catalog_synced_at : this.state.catalogSyncedAt,
@@ -478,15 +478,18 @@ export class PrototypeLogic extends Logic {
         promo: s.appliedPromo ? s.appliedPromo.code : '',
         quantity: Math.max(1, Math.min(99, Math.floor(Number(s.orderQty) || 1)))
       })
-    }).then(r => r.json()).then(d => {
+    }).then(async r => {
+      let d = null;
+      try { d = await r.json(); } catch (e) { /* ignore */ }
       if (d && d.ok && d.redirect) {
         this.setState({ curOrderId: d.orderId, payRedirect: d.redirect });
         openPaymentUrl(d.redirect);
         this.pollOrder(d.orderId);
       } else {
-        this.setState({ screen: 'payment', payErr: (d && d.error) ? String(d.error) : 'Не удалось создать платёж' });
+        const msg = d && d.error ? String(d.error).slice(0, 140) : (!r.ok && r.status >= 500 ? 'Сервер временно недоступен. Попробуйте через минуту.' : 'Не удалось создать платёж');
+        this.setState({ screen: 'payment', payErr: msg });
       }
-    }).catch(() => this.setState({ screen: 'payment', payErr: 'Сеть недоступна' }));
+    }).catch(() => this.setState({ screen: 'payment', payErr: 'Нет связи с сервером. Проверьте интернет и откройте магазин заново.' }));
   }
   pollOrder(oid) {
     clearInterval(this.orderInt);
@@ -794,7 +797,7 @@ export class PrototypeLogic extends Logic {
       return {
         name: p.name, buyF: this.fmt(this.buyRubOf(p)),
         buyUsdF: Number(p.buyUsd || 0).toFixed(4),
-        rateF: (s.supRate || 0).toFixed(2),
+        rateF: this.rateRub().toFixed(2),
         markup: p.markup, priceF: this.fmt(this.priceOf(p)),
         catL: ({ uc: 'UC', mythic: 'КРИСТ', prime: 'ПРАЙМ', other: 'ПРОЧЕЕ', nc: 'NC' })[p.sub] || 'UC',
         badge: p.badge, hasBadge: !!p.badge, badgeC: hot ? MG : (p.badge === 'КОМБО' ? '#b18cff' : AC),
@@ -1047,7 +1050,7 @@ export class PrototypeLogic extends Logic {
       // products / promos
       catalogSyncedF: s.catalogSyncedAt ? this.fmtTs(s.catalogSyncedAt * 1000) : 'ещё не синхронизировано',
       catalogOffersF: s.catalogOffersTotal ? `${s.catalogOffersSynced}/${s.catalogOffersTotal} офферов` : '',
-      catalogRateF: (s.supRate || 0).toFixed(5),
+      catalogRateF: this.rateRub().toFixed(5),
       catalogRefreshing: !!s.catalogRefreshing,
       refreshCatalog: () => this.loadCatalog(true),
       prodRows, promoRows,
