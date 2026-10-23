@@ -7,6 +7,7 @@ import {
   listOrdersByUser,
   listAllOrders,
   listPaidOrdersWithFazer,
+  listPendingOrders,
   now,
   type OrderRow,
 } from './db.js';
@@ -282,6 +283,31 @@ export interface RefreshPaidOrdersResult {
   checked: number;
   done: number;
   failed: number;
+}
+
+export interface RefreshPendingLavaResult {
+  checked: number;
+  paid: number;
+}
+
+/** Фоновая сверка: LAVA success, а у нас pending (вебхук не дошёл / пользователь закрыл мини-апп). */
+export async function refreshPendingLavaOrders(): Promise<RefreshPendingLavaResult> {
+  if (env.paymentProvider !== 'lava') return { checked: 0, paid: 0 };
+  const ids = (listPendingOrders.all() as { id: string }[]).map((r) => r.id);
+  let paid = 0;
+  for (const id of ids) {
+    try {
+      const o = getOrder.get(id) as OrderRow | undefined;
+      if (!o || o.status !== 'pending') continue;
+      const lavaPaid = await getLavaInvoicePaidByOrderId(id);
+      if (!lavaPaid) continue;
+      await markOrderPaid(id);
+      paid++;
+    } catch (e) {
+      console.warn('[refreshPendingLava]', id, (e as Error).message);
+    }
+  }
+  return { checked: ids.length, paid };
 }
 
 /** Фоновая синхронизация: все заказы paid с fazer_id → done / fulfill_failed по API Fazer. */

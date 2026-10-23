@@ -118,11 +118,28 @@ export class PrototypeLogic extends Logic {
       fetch('/api/seen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) }).catch(() => {});
       this.loadMyOrders();
     }
-    // возобновление опроса статуса при перезапуске мини-аппа
-    if ((s.screen === 'paywait' || (s.screen === 'status' && !s.success)) && s.curOrderId) {
-      this.pollOrder(s.curOrderId);
-    } else if (s.screen === 'paywait') {
-      this.setState({ screen: 'payment' });
+    // возврат с LAVA successUrl или возобновление опроса
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const returnOrder = params.get('order');
+      const paidFlag = params.get('paid');
+      if (returnOrder && /^IZ-\d{5}$/.test(returnOrder)) {
+        this.setState({
+          curOrderId: returnOrder,
+          screen: paidFlag === '1' ? 'paywait' : 'status',
+          stage: paidFlag === '1' ? -1 : 0,
+          success: false,
+        });
+        this.pollOrder(returnOrder);
+      } else if ((s.screen === 'paywait' || (s.screen === 'status' && !s.success)) && s.curOrderId) {
+        this.pollOrder(s.curOrderId);
+      } else if (s.screen === 'paywait') {
+        this.setState({ screen: 'payment' });
+      }
+    } catch (e) {
+      if ((s.screen === 'paywait' || (s.screen === 'status' && !s.success)) && s.curOrderId) {
+        this.pollOrder(s.curOrderId);
+      }
     }
   }
   componentWillUnmount() { this.timers.forEach(clearTimeout); clearInterval(this.payInt); clearInterval(this.bootInt); clearInterval(this.orderInt); clearInterval(this.bcInt); clearInterval(this.catalogInt); }
