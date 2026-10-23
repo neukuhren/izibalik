@@ -110,10 +110,29 @@ export interface FazerOrder {
 // Нормализация статуса поставщика к нашему домену.
 function mapFazerStatus(s: string | undefined): FazerOrder['status'] {
   const v = String(s ?? '').toLowerCase();
-  if (['completed', 'success', 'done', 'delivered'].includes(v)) return 'done';
+  if (['completed', 'success', 'done', 'delivered', 'complete'].includes(v)) return 'done';
   if (['failed', 'error', 'canceled', 'cancelled', 'refunded', 'refund'].includes(v)) return 'failed';
   if (['processing', 'in_progress', 'sent', 'created'].includes(v)) return 'processing';
   return 'pending';
+}
+
+/** UC уже на аккаунте, а статус в ответе ещё processing — по completed_at / history. */
+export function isFazerDeliveryComplete(f: FazerOrder | null): boolean {
+  if (!f) return false;
+  if (f.status === 'done') return true;
+  const order = f.raw?.order ?? f.raw?.data?.order ?? f.raw?.data ?? f.raw;
+  if (order && typeof order === 'object') {
+    const o = order as Record<string, unknown>;
+    if (o.completed_at) return true;
+    const hist = o.status_history;
+    if (Array.isArray(hist)) {
+      for (const h of hist) {
+        const st = String((h as { status?: string })?.status ?? '').toLowerCase();
+        if (st === 'completed' || st === 'success' || st === 'done') return true;
+      }
+    }
+  }
+  return false;
 }
 
 export async function createFazerOrder(

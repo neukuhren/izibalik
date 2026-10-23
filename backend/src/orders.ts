@@ -16,7 +16,13 @@ import { chargeAmountRub, serviceFeeRub, totalWithFeeRub } from './fees.js';
 import { env } from './env.js';
 import { getLavaInvoicePaidByOrderId } from './lava.js';
 import { getConfig, markupOf, findPromo, bumpPromoUsed } from './config.js';
-import { createFazerOrder, getFazerOrder, getRateRub, validatePlayerId } from './fazer.js';
+import {
+  createFazerOrder,
+  getFazerOrder,
+  getRateRub,
+  isFazerDeliveryComplete,
+  validatePlayerId,
+} from './fazer.js';
 import { getProvider } from './payments.js';
 import { notifyUser } from './notify.js';
 
@@ -140,6 +146,61 @@ function productName(id: string): string {
   return getProduct(id)?.name ?? id;
 }
 
+function orderDoneNotifyText(o: OrderRow): string {
+  const product = getProduct(o.product_id);
+  const qty = Math.max(1, Math.floor(Number(o.quantity) || 1));
+  const label = product
+    ? qty > 1
+      ? `${qty}× ${product.name}`
+      : product.name
+    : productName(o.product_id);
+  return `🎉 Заказ ${o.id} выполнен: ${label} зачислен на ID ${o.player_id}.`;
+}
+
+const FAZER_SYNC_DELAYS_SEC = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180];
+
+/** После выдачи в Fazer статус часто processing 1–3 мин — дожимаем до done и шлём уведомление. */
+function scheduleFazerStatusSync(orderId: string): void {
+  void (async () => {
+    for (const sec of FAZER_SYNC_DELAYS_SEC) {
+      await new Promise((r) => setTimeout(r, sec * 1000));
+      const cur = getOrder.get(orderId) as OrderRow | undefined;
+      if (!cur || cur.status !== 'paid') return;
+      await syncPaidOrderFromFazer(orderId, cur);
+      const after = getOrder.get(orderId) as OrderRow | undefined;
+      if (after?.status === 'done' || after?.status === 'fulfill_failed') return;
+    }
+  })();
+}
+
+async function syncPaidOrderFromFazer(orderId: string, o: OrderRow): Promise<OrderRow | undefined> {
+  if (o.status !== 'paid' || !o.fazer_id) return o;
+  const f = await getFazerOrder(o.fazer_id);
+  if (!f) return o;
+  if (isFazerDeliveryComplete(f)) {
+    updateOrderStatus.run({
+      id: orderId,
+      status: 'done',
+      fazer_id: f.fazerId,
+      provider_id: null,
+      updated_at: now(),
+    });
+    if (o.user_id) void notifyUser(o.user_id, orderDoneNotifyText(o));
+    return getOrder.get(orderId) as OrderRow | undefined;
+  }
+  if (f.status === 'failed') {
+    updateOrderStatus.run({
+      id: orderId,
+      status: 'fulfill_failed',
+      fazer_id: f.fazerId,
+      provider_id: null,
+      updated_at: now(),
+    });
+    return getOrder.get(orderId) as OrderRow | undefined;
+  }
+  return o;
+}
+
 // Выдача через FazerCards. Идемпотентность по orderId.
 export async function fulfillOrder(orderId: string): Promise<void> {
   const o = getOrder.get(orderId) as OrderRow | undefined;
@@ -171,10 +232,10 @@ export async function fulfillOrder(orderId: string): Promise<void> {
       if (o.user_id) void notifyUser(o.user_id, `⚠️ Не удалось выдать заказ ${o.id}. Средства вернём, поддержка свяжется.`);
     } else if (allDone && !anyPending) {
       updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
-      const label = qty > 1 ? `${qty}× ${product.name}` : product.name;
-      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен: ${label} зачислен на ID ${o.player_id}.`);
+      if (o.user_id) void notifyUser(o.user_id, orderDoneNotifyText(o));
     } else {
       updateOrderStatus.run({ id: orderId, status: 'paid', fazer_id: lastFazerId, provider_id: null, updated_at: now() });
+      scheduleFazerStatusSync(orderId);
     }
   } catch (e) {
     const msg = (e as Error).message || String(e);
@@ -265,16 +326,8 @@ export async function refreshOrder(orderId: string): Promise<OrderRow | undefine
     }
   }
   if (o.status === 'paid' && o.fazer_id) {
-    const f = await getFazerOrder(o.fazer_id);
-    if (f && f.status === 'done') {
-      updateOrderStatus.run({ id: orderId, status: 'done', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
-      if (o.user_id) void notifyUser(o.user_id, `🎉 Заказ ${o.id} выполнен.`);
-      return getOrder.get(orderId) as unknown as OrderRow;
-    }
-    if (f && f.status === 'failed') {
-      updateOrderStatus.run({ id: orderId, status: 'fulfill_failed', fazer_id: f.fazerId, provider_id: null, updated_at: now() });
-      return getOrder.get(orderId) as unknown as OrderRow;
-    }
+    const synced = await syncPaidOrderFromFazer(orderId, o);
+    if (synced && synced.status !== o.status) return synced;
   }
   return o;
 }

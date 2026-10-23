@@ -113,6 +113,9 @@ export class PrototypeLogic extends Logic {
     }).catch(() => {});
     this.initShopData();
     this.catalogInt = setInterval(() => this.loadCatalog(), 60 * 60 * 1000);
+    this.adminOrdInt = setInterval(() => {
+      if (this.state.mode === 'admin' && this.state.adminTab === 'orders') this.loadAdminOrders();
+    }, 20 * 1000);
     // регистрация пользователя для аудитории рассылки (по подписанному initData)
     if (getInitData()) {
       fetch('/api/seen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: getInitData() }) }).catch(() => {});
@@ -142,7 +145,7 @@ export class PrototypeLogic extends Logic {
       }
     }
   }
-  componentWillUnmount() { this.timers.forEach(clearTimeout); clearInterval(this.payInt); clearInterval(this.bootInt); clearInterval(this.orderInt); clearInterval(this.bcInt); clearInterval(this.catalogInt); }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); clearInterval(this.payInt); clearInterval(this.bootInt); clearInterval(this.orderInt); clearInterval(this.bcInt); clearInterval(this.catalogInt); clearInterval(this.adminOrdInt); }
   runBoot() {
     const lines = [[0, 'подключение к Telegram WebApp…'], [28, 'авторизация initData…'], [52, 'загрузка тарифов…'], [78, 'синхронизация заказов…'], [95, 'готово']];
     this.bootStart = Date.now();
