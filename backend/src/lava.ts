@@ -140,7 +140,35 @@ function sortKeysDeep(v: unknown): unknown {
   return out;
 }
 
-/** Дополнительный ключ из ЛК — HMAC-SHA256(raw body). */
+/** Как в lava-payment/lava ClientCheckSignatureWebhook: ksort только верхнего уровня + json_encode. */
+function topLevelSortedJson(rawBody: string): string | null {
+  try {
+    const data = JSON.parse(rawBody) as Record<string, unknown>;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    const sorted: Record<string, unknown> = {};
+    for (const k of Object.keys(data).sort()) sorted[k] = data[k];
+    return JSON.stringify(sorted);
+  } catch {
+    return null;
+  }
+}
+
+function webhookSignatureCandidates(rawBody: string): string[] {
+  const candidates: string[] = [];
+  const trimmed = rawBody.trim();
+  if (trimmed) candidates.push(trimmed);
+  const top = topLevelSortedJson(trimmed);
+  if (top && top !== trimmed) candidates.push(top);
+  try {
+    const deep = JSON.stringify(sortKeysDeep(JSON.parse(trimmed) as Record<string, unknown>));
+    if (!candidates.includes(deep)) candidates.push(deep);
+  } catch {
+    /* ignore */
+  }
+  return candidates;
+}
+
+/** Дополнительный ключ из ЛК — HMAC-SHA256 (см. dev.lava.ru и SDK checkSignWebhook). */
 export function verifyLavaWebhookSignature(
   rawBody: string,
   reqHeaders: Record<string, string | string[] | undefined>,
@@ -153,15 +181,11 @@ export function verifyLavaWebhookSignature(
     headerOne(reqHeaders.authorization) ||
     headerOne(reqHeaders.Authorization);
   if (!sig) return false;
-  const direct = createHmac('sha256', secret).update(rawBody).digest('hex');
-  if (signaturesMatch(sig, direct)) return true;
-  try {
-    const sorted = sortKeysDeep(JSON.parse(rawBody) as Record<string, unknown>);
-    const legacy = createHmac('sha256', secret).update(JSON.stringify(sorted)).digest('hex');
-    return signaturesMatch(sig, legacy);
-  } catch {
-    return false;
+  for (const payload of webhookSignatureCandidates(rawBody)) {
+    const expected = createHmac('sha256', secret).update(payload).digest('hex');
+    if (signaturesMatch(sig, expected)) return true;
   }
+  return false;
 }
 
 export interface LavaPaidEvent {

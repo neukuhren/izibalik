@@ -4,7 +4,7 @@ Documentation=file:/opt/projects/izibalik/backend/README.md
 
 [Timer]
 OnBootSec=3min
-OnUnitActiveSec=5min
+OnUnitActiveSec=2min
 AccuracySec=1min
 Unit=izibalik-refresh-orders.service
 

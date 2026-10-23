@@ -1,11 +1,13 @@
-import { refreshAllPaidOrders } from '../orders.js';
+import { refreshAllPaidOrders, refreshPendingLavaOrders } from '../orders.js';
 
 async function main(): Promise<void> {
+  const lava = await refreshPendingLavaOrders();
   const result = await refreshAllPaidOrders();
   console.log(
     JSON.stringify({
       job: 'refresh-paid-orders',
       ok: true,
+      lava,
       ...result,
       at: new Date().toISOString(),
     }),

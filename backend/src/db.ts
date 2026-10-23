@@ -120,6 +120,9 @@ export const listAllOrders = db.prepare(`SELECT * FROM orders ORDER BY created_a
 export const listPaidOrdersWithFazer = db.prepare(
   `SELECT id FROM orders WHERE status = 'paid' AND fazer_id IS NOT NULL AND fazer_id != '' ORDER BY updated_at ASC`,
 );
+export const listPendingOrders = db.prepare(
+  `SELECT id FROM orders WHERE status = 'pending' ORDER BY created_at DESC LIMIT 150`,
+);
 
 export const getConfigRow = db.prepare(`SELECT json FROM config WHERE id = 1`);
 export const setConfigRow = db.prepare(`
