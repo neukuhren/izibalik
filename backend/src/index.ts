@@ -5,6 +5,7 @@ import { env } from './env.js';
 import { registerRoutes } from './routes.js';
 import { startBot } from './bot.js';
 import { startRateRefresh } from './fazer.js';
+import { resumeFazerSyncForPaidOrders } from './orders.js';
 
 async function main(): Promise<void> {
   const app = Fastify({ logger: { level: 'info' }, bodyLimit: 12 * 1024 * 1024, trustProxy: true });
@@ -36,6 +37,7 @@ async function main(): Promise<void> {
 
   startRateRefresh();
   await startBot();
+  resumeFazerSyncForPaidOrders();
 
   await app.listen({ port: env.port, host: env.host });
   app.log.info(`IZIBALIK backend на http://${env.host}:${env.port}`);
