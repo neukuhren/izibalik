@@ -363,6 +363,20 @@ export async function refreshPendingLavaOrders(): Promise<RefreshPendingLavaResu
   return { checked: ids.length, paid };
 }
 
+/** После рестарта API таймеры scheduleFazerStatusSync теряются — поднимаем снова. */
+export function resumeFazerSyncForPaidOrders(): void {
+  const rows = listPaidOrdersWithFazer.all() as { id: string }[];
+  let n = 0;
+  for (const { id } of rows) {
+    const o = getOrder.get(id) as OrderRow | undefined;
+    if (o?.status === 'paid' && o.fazer_id) {
+      scheduleFazerStatusSync(id);
+      n++;
+    }
+  }
+  if (n > 0) console.log(`[orders] возобновлён опрос Fazer для ${n} заказ(ов) в paid`);
+}
+
 /** Фоновая синхронизация: все заказы paid с fazer_id → done / fulfill_failed по API Fazer. */
 export async function refreshAllPaidOrders(): Promise<RefreshPaidOrdersResult> {
   const ids = (listPaidOrdersWithFazer.all() as { id: string }[]).map((r) => r.id);
